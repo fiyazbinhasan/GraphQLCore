@@ -2,7 +2,7 @@
 
 [`GraphiQL`](https://github.com/graphql/graphiql) (spelled `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
 
-There are setups you have to do first. We need some packages installed. Create a `package.json` file and paste the folloing snippet,
+There are setups you have to do first. We need some packages installed. Create a `package.json` file and paste the following snippet,
 
     {
       "name": "GraphQLAPI",
