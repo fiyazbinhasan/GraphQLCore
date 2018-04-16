@@ -1,115 +1,206 @@
-# GraphQL with ASP.NET Core (Part- III : Dependency Injection)
+# GraphQL with ASP.NET Core (Part- IV : GraphiQL - An in-browser IDE)
 
-The letter 'D' in [SOLID](https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)) stands for `Dependency inversion principle`. The principle states,
+[`GraphiQL`](https://github.com/graphql/graphiql) (spelled `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
 
-> * A. High-level modules should not depend on low-level modules. Both should depend on abstractions.
-> * Abstractions should not depend on details. Details should depend on abstractions. [Wikipedia](https://en.wikipedia.org/wiki/Dependency_inversion_principle)
+There are setups you have to do first. We need some packages installed. Following is the `package.json` file,
 
-Newing up instances cause strict coupling between separate code modules. To keep them decoupled from each other, we follow the 'Dependency Inversion Principle'. In this way the modules are not dependent on each other's concrete implementation rather they are dependent upon abstractions e.g. interfaces.
+    {
+      "name": "GraphQLAPI",
+      "version": "1.0.0",
+      "main": "index.js",
+      "author": "Fiyaz Hasan",
+      "license": "MIT",
+      "dependencies": {
+        "graphiql": "^0.11.11",
+        "graphql": "^0.13.2",
+        "isomorphic-fetch": "^2.2.1",
+        "react": "^16.3.1",
+        "react-dom": "^16.2.0"
+      },
+      "devDependencies": {
+        "babel-cli": "^6.26.0",
+        "babel-loader": "^7.1.4",
+        "babel-preset-env": "^1.6.1",
+        "babel-preset-react": "^6.24.1",
+        "css-loader": "^0.28.11",
+        "extract-text-webpack-plugin": "^3.0.2",
+        "ignore-loader": "^0.1.2",
+        "style-loader": "^0.20.3",
+        "webpack": "^3.11.0"
+      }
+    }
 
-An abstraction can have many many implementations. So, whenever we encounter an abstraction, there should be some way of passing a specific implementation to that. A class is held responsible for this kind of servings and it should be configured in such way so. We call it a dependency injection container.
+Create a `package.json` file and paste the snippet. At this point, you can either use `yarn` or `npm` to install the packages.
 
-ASP.Net Core has its built-in dependency injection container. It's simple and can serve our purpose very well. Not only it can be configured to serve implementations to abstractions but also can control the lifetime of the created instances. 
+    yarn install
 
-Currently with our simple `Hello World` application, we are not bothered with instance lifetime. As of now we will go for `Singleton` instance lifetime for everything,
+Or
 
-Instead of using the concrete `DocumentWriter` and `DocumentExecutor`, we can use their abstractions i.e. `IDocumentWriter` and `DocumentExecutor`. And for this purpose we have to configure the built-in dependency container as follows,
+    npm install
+
+Next, create a `ClientApp` folder and add the following two files with the code snippets,
+
+##### app.js
 
 ```
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddSingleton<IDocumentWriter, DocumentWriter>();
-    services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
+import React from 'react';
+import ReactDOM from 'react-dom';
+import GraphiQL from 'graphiql';
+import fetch from 'isomorphic-fetch';
+import 'graphiql/graphiql.css';
+import './app.css';
+
+function graphQLFetcher(graphQLParams) {
+  return fetch(window.location.origin + '/api/graphql', {
+    method: 'post',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(graphQLParams)
+  }).then(response => response.json());
+}
+
+ReactDOM.render(
+  <GraphiQL fetcher={graphQLFetcher} />,
+  document.getElementById('app')
+);
+```
+
+##### app.css
+
+```
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    width: 100%
+}
+
+#app {
+    height: 100vh
 }
 ```
 
-For the `HelloWordQuery`, we don't have any abstraction. We will just use the raw implementation,
+GraphiQL is a client-side library which provides a `React` component i.e. `<GraphiQL/>`. It renders the whole graphical user interface of the IDE. The component has a `fetcher` attribute which can be attached to a function. The attached function returns an HTTP promise object and it is just the mimic of the `POST` requests that we have been making with `Insomnia`/`Postman`. All of these are done in the `app.js`.
+
+Next up is the `index.html`, which will pop up once our application is served. We render the `<GraphiQL/>` component in a `div` with an id of `app`. The index file is placed under the `wwwroot` so that it is publicly available.
+
+##### index.html
 
 ```
-services.AddSingleton<HelloWordQuery>();
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>GraphiQL</title>
+    <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+    <div id="app"></div>
+    <script src="/bundle.js" type="text/javascript"></script>
+</body>
+</html>
 ```
 
-The schema contains the `query` and later in the series it will also have `mutation` and other fields. We better make a separate class for it. The class will extend the `Schema` type and we can make its constructor injectable for the concrete `HelloWorldQuery`,
+As you can see, we have a `bundle.js` and `style.css` file being referenced. Both of them are products of running a build automation script. In our case, we have `webpack` and the script is as follows,
 
+##### webpack.config.js
 
-    public class HelloWorldSchema : Schema
+```
+const webpack = require('webpack');
+var path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+module.exports = [
     {
-        public HelloWorldSchema(HelloWorldQuery query)
-        {
-            Query = query;
-        }
-    }
+        entry: {
+            'bundle': './ClientApp/app.js',
+        },
 
-Finally it's time to configure the `HelloWorldSchema` in the `ConfigureServices` method as following,
+        output: {
+            path: path.resolve('./wwwroot'),
+            filename: '[name].js'
+        },
 
+        resolve: {
+            extensions: ['.js', '.json']
+        },
 
-```
-services.AddSingleton<ISchema, HelloWorldSchema>();
-```
-
-> The `ISchema` is coming from the `graphql-dotnet` library itself.
-
-Now, we can shift the middleware code to its own class. Following is the middleware class named `GraphQLMiddleware`,
-
-    public class GraphQLMiddleware
-    {
-        private readonly RequestDelegate _next;
-        private readonly IDocumentWriter _writer;
-        private readonly IDocumentExecuter _executor;
-        private readonly ISchema _schema;
-
-        public GraphQLMiddleware(RequestDelegate next, IDocumentWriter writer, IDocumentExecuter executor, ISchema schema)
-        {
-            _next = next;
-            _writer = writer;
-            _executor = executor;
-            _schema = schema;
-        }
-
-        public async Task InvokeAsync(HttpContext httpContext)
-        {
-            if (httpContext.Request.Path.StartsWithSegments("/api/graphql") && string.Equals(httpContext.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
-            {
-                string body;
-                using (var streamReader = new StreamReader(httpContext.Request.Body))
+        module: {
+            rules: [
+                { test: /\.js/, use: [{
+                    loader: 'babel-loader'
+                }], exclude: /node_modules/ },
                 {
-                    body = await streamReader.ReadToEndAsync();
+                    test: /\.css$/, use: ExtractTextPlugin.extract({
+                        fallback: "style-loader",
+                        use: "css-loader"
+                    })
+                },
+                { test: /\.flow/, use: [{
+                    loader: 'ignore-loader'
+                }] }
+            ]
+        },
 
-                    var request = JsonConvert.DeserializeObject<GraphQLRequest>(body);
-
-                    var result = await _executor.ExecuteAsync(doc =>
-                    {
-                        doc.Schema = _schema;
-                        doc.Query = request.Query;
-                    }).ConfigureAwait(false);
-
-                    var json = _writer.Write(result);
-                    await httpContext.Response.WriteAsync(json);
-                }
-            }
-            else
-            {
-                await _next(httpContext);
-            }
-        }
+        plugins: [
+            new ExtractTextPlugin('style.css', { allChunks: true })
+        ]
     }
+];
+```
 
-Notice, how we replace all the concrete type initialisations with abstractions and make our code loose coupled. Every dependency injectable service in injected via the constructor (constructor injection) at this moment.
+The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_module` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
 
-The last but not least, we must attach the middleware in the application startup pipeline. `IApplicationBuilder` has an extension method called `UseMiddleware` which is used to attach middleware classes. So, the final look of the `Configure` method is as follows,
+Last of all a `.babelrc` configuration file is needed to define the presets as followings,
 
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-    {
-        app.UseMiddleware<GraphQLMiddleware>();
-    }
+##### .babelrc
+
+```
+{
+  "presets": ["env", "react"]
+}
+```
+
+All done! Now run the `webpack` command in the terminal on the root of your project and you will have the `bundle.js` and `style.css` files generated.
+
+On the server-side, in `Startup.cs` files, add the middlewares to serve static files and espacially the default `index.html` file,
+
+The `Configure` method should look like the following,
+
+```
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.UseMiddleware<GraphQLMiddleware>();
+}
+```
+
+Now, run the application and you will be presented with the following interface,
+
+<a href="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" imageanchor="1" ><img border="0" src="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" data-original-width="1600" data-original-height="1044" /></a>
+
+On the right-hand side documentation explorer pane, you can browse through different queries and have a deep understanding of what fields are available and what they supposed to do.
+
+Some of the nice features this IDE has to offers are as followings,
+
+* Syntax highlighting
+* Intelligent type ahead of fields, arguments, types, and more.
+* Real-time error highlighting and reporting.
+* Automatic query completion.
+* Run and inspect query results.
 
 #### Repository Link (Branch)
 
-[Part III](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_III_Dependency_Injection)
+[Part IV](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_III_Dependency_Injection)
 
 #### Important Links
 
-[Dependency injection in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection)
+[Github repository for GraphiQL](https://github.com/graphql/graphiql)
 
-[Dependency injection to the core](http://fiyazhasan.me/tag/dependency-injection-2/)
+[Concepts of webpack](https://webpack.js.org/concepts/)
 
+[React.js Hello World](https://reactjs.org/docs/hello-world.html)
+
+[Babel.js installation guide for webpack](https://babeljs.io/docs/setup/#installation)
