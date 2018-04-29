@@ -1,206 +1,194 @@
-# GraphQL with ASP.NET Core (Part- IV : GraphiQL - An in-browser IDE)
+# GraphQL with ASP.NET Core (Part- V : Fields, Arguments, Variables)
 
-[`GraphiQL`](https://github.com/graphql/graphiql) (spelled `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
+### Fields
 
-There are setups you have to do first. We need some packages installed. Following is the `package.json` file,
+We already have a good idea of GraphQL `Fields`. Remember we had two fields under the `HelloWorldQuery` i.e. `hello` and `howdy`. Both of them were scaler fields. As the official documentation states,
 
+> "At its simplest, GraphQL is about asking for specific fields on objects" - [graphql.org](https://graphql.org/learn/queries/#fields)
+
+Let's extend our simple application to accommodate a complex type. Say, for example, we are heading towards a path of making an `Inventory` system. Start by creating an `Item` type,
+
+```
+public class Item 
+{
+    public string Barcode { get; set; }
+
+    public string Title { get; set; }
+
+    public decimal SellingPrice { get; set; }
+}
+```
+
+However, we can't directly query against this object as it is not a `GraphQL` object i.e. not an `ObjectGraphType`. To make it `GraphQL` queryable, we should create a new type and extend it from `ObjectGraphType`. Another flavor of `ObjectGraphType` takes generic types. As you already guessed it, we will pass the `Item` type as its generic argument.
+
+```
+public class ItemType : ObjectGraphType<Item>
+{
+    public ItemType()
     {
-      "name": "GraphQLAPI",
-      "version": "1.0.0",
-      "main": "index.js",
-      "author": "Fiyaz Hasan",
-      "license": "MIT",
-      "dependencies": {
-        "graphiql": "^0.11.11",
-        "graphql": "^0.13.2",
-        "isomorphic-fetch": "^2.2.1",
-        "react": "^16.3.1",
-        "react-dom": "^16.2.0"
-      },
-      "devDependencies": {
-        "babel-cli": "^6.26.0",
-        "babel-loader": "^7.1.4",
-        "babel-preset-env": "^1.6.1",
-        "babel-preset-react": "^6.24.1",
-        "css-loader": "^0.28.11",
-        "extract-text-webpack-plugin": "^3.0.2",
-        "ignore-loader": "^0.1.2",
-        "style-loader": "^0.20.3",
-        "webpack": "^3.11.0"
-      }
+        Field(i => i.Barcode);
+        Field(i => i.Title);
+        Field(i => i.SellingPrice);
+    }
+}
+```
+
+Two things to notice down here. First, we no longer have type declarations in the fields. It will automatically get resolved by the library i.e. dot net `string` type will be resolved to `StringGraphType`. Second, we used `lambda` expressions to resolve things like the name of the `fields`. This concept of property matching should be easy to understand for the people who are familiar with the notion of `DTOs/ViewModels`. So, whoever thinks that we are dealing with an extra burden of type creation; trust me, we are not! 
+
+Next, we need to register the `ItemType` in our root query object i.e. `HelloWorldQuery`,
+
+```
+public HelloWorldQuery()
+{
+    ...
+    ...
+
+    Field<ItemType>(
+        "item",
+        resolve: context =>
+        {
+           return new Item {
+                Barcode = "123",
+                Title = "Headphone",
+                SellingPrice = 12.99M
+            };
+        }
+    ); 
+}
+```
+
+For the time being, we are returning a hard-coded instance of `Item` when someone tries to query the `item` field. We can run our application now and do the following,
+
+<a href="https://3.bp.blogspot.com/-SyC7HeAZhLY/WuWhTJ14KOI/AAAAAAAAB3Y/h7vqDaOPSAwQtUJwSr0q0lCWGfhfTZ4DACLcBGAs/s1600/GraphiQL-complex.png" imageanchor="1" ><img border="0" src="https://3.bp.blogspot.com/-SyC7HeAZhLY/WuWhTJ14KOI/AAAAAAAAB3Y/h7vqDaOPSAwQtUJwSr0q0lCWGfhfTZ4DACLcBGAs/s1600/GraphiQL-complex.png" data-original-width="1600" data-original-height="1068" /></a>
+
+### Arguments
+
+Serving a hard-coded instance is not going to cut it. How about we introduce a data source which will serve the purpose of giving away a list of items,
+
+```
+public class DataSource
+{
+	public IList<Item> Items
+	{
+		get;
+		set;
+	}
+
+	public DataSource()
+	{
+		Items = new List<Item>(){
+			new Item { Barcode= "123", Title="Headphone", SellingPrice=50},
+			new Item { Barcode= "456", Title="Keyboard", SellingPrice= 40},
+			new Item { Barcode= "789", Title="Monitor", SellingPrice= 100}
+		};
+	}
+
+	public Item GetItemByBarcode(string barcode)
+	{
+		return Items.First(i => i.Barcode.Equals(barcode));
+	}
+}
+```
+
+Along with the `Items` collection, we also have a method returns a single item that matches the a passed in barcode string.
+
+Great! Now to pass in an argument via the query we have to modify the `item` field as followings,
+
+ 	Field<ItemType>(
+		"item",
+		arguments: new QueryArguments(new QueryArgument<StringGraphType> { Name = "barcode" }),
+		resolve: context =>
+		{
+			var barcode = context.GetArgument<string>("barcode");
+			return new DataSource().GetItemByBarcode(barcode);
+		}
+	);
+
+There could be a list of arguments; some required and some optional. We specify an individual argument and its type with the `QueryArgument<T>`. The `Name` represents the name of the argument.
+
+Now, we can construct a query inside `GraphiQL` with pre-defined arguments as followings,
+
+```
+query {
+  item (barcode: "123") {
+    title
+    selling price
+  }
+}
+```
+At this point, the barcode argument is optional. So, if you do something like below,
+
+```
+query {
+  item {
+    title
+    sellingPrice
+  }
+}
+```
+
+It will throw an error saying `Error trying to resolve item.`. That's fair since we didn't really write our code in a safe way. To ensure that user always provides an argument we can make the argument nonnullable with the following syntax,
+
+```
+QueryArgument<NonNullGraphType<StringGraphType>> { Name = "barcode" }
+```
+
+So, if we try to execute the same query in `GraphiQL`, it will give you nice error message as followings,
+
+
+<a href="https://2.bp.blogspot.com/-VC6nHkPpd0w/WuWvMujlfLI/AAAAAAAAB3o/E-a30EOzvgUMr6EGKPrahGaVA6V6qzrTACLcBGAs/s1600/GraphiQL%2B%25281%2529.png" imageanchor="1" ><img border="0" src="https://2.bp.blogspot.com/-VC6nHkPpd0w/WuWvMujlfLI/AAAAAAAAB3o/E-a30EOzvgUMr6EGKPrahGaVA6V6qzrTACLcBGAs/s1600/GraphiQL%2B%25281%2529.png" data-original-width="1600" data-original-height="617" /></a>
+
+### Variables
+
+It's time to make the argument itself dynamic. We dont want to construct a whole query wherever we want to change a value of an argument, do we? Hence come variables. But first we have to make sure, our `GraphQL` middleware accepts variables. Go back to the `GraphQLRequest` class and add a `Variables` property.
+
+    public class GraphQLRequest
+    {
+		public string Query { get; set; }
+		public JObject Variables { get; set; }
     }
 
-Create a `package.json` file and paste the snippet. At this point, you can either use `yarn` or `npm` to install the packages.
+Next find out the `_executor.ExecuteAsync` method in the middleware's `InvokeAsync` method and modify as followings,
 
-    yarn install
-
-Or
-
-    npm install
-
-Next, create a `ClientApp` folder and add the following two files with the code snippets,
-
-##### app.js
-
-```
-import React from 'react';
-import ReactDOM from 'react-dom';
-import GraphiQL from 'graphiql';
-import fetch from 'isomorphic-fetch';
-import 'graphiql/graphiql.css';
-import './app.css';
-
-function graphQLFetcher(graphQLParams) {
-  return fetch(window.location.origin + '/api/graphql', {
-    method: 'post',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(graphQLParams)
-  }).then(response => response.json());
-}
-
-ReactDOM.render(
-  <GraphiQL fetcher={graphQLFetcher} />,
-  document.getElementById('app')
-);
-```
-
-##### app.css
-
-```
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    width: 100%
-}
-
-#app {
-    height: 100vh
-}
-```
-
-GraphiQL is a client-side library which provides a `React` component i.e. `<GraphiQL/>`. It renders the whole graphical user interface of the IDE. The component has a `fetcher` attribute which can be attached to a function. The attached function returns an HTTP promise object and it is just the mimic of the `POST` requests that we have been making with `Insomnia`/`Postman`. All of these are done in the `app.js`.
-
-Next up is the `index.html`, which will pop up once our application is served. We render the `<GraphiQL/>` component in a `div` with an id of `app`. The index file is placed under the `wwwroot` so that it is publicly available.
-
-##### index.html
-
-```
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>GraphiQL</title>
-    <link rel="stylesheet" href="/style.css" />
-</head>
-<body>
-    <div id="app"></div>
-    <script src="/bundle.js" type="text/javascript"></script>
-</body>
-</html>
-```
-
-As you can see, we have a `bundle.js` and `style.css` file being referenced. Both of them are products of running a build automation script. In our case, we have `webpack` and the script is as follows,
-
-##### webpack.config.js
-
-```
-const webpack = require('webpack');
-var path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-module.exports = [
+    var result = await _executor.ExecuteAsync(doc =>
     {
-        entry: {
-            'bundle': './ClientApp/app.js',
-        },
+        doc.Schema = _schema;
+        doc.Query = request.Query;
 
-        output: {
-            path: path.resolve('./wwwroot'),
-            filename: '[name].js'
-        },
+        doc.Inputs = request.Variables.ToInputs();
 
-        resolve: {
-            extensions: ['.js', '.json']
-        },
+    }).ConfigureAwait(false);
 
-        module: {
-            rules: [
-                { test: /\.js/, use: [{
-                    loader: 'babel-loader'
-                }], exclude: /node_modules/ },
-                {
-                    test: /\.css$/, use: ExtractTextPlugin.extract({
-                        fallback: "style-loader",
-                        use: "css-loader"
-                    })
-                },
-                { test: /\.flow/, use: [{
-                    loader: 'ignore-loader'
-                }] }
-            ]
-        },
-
-        plugins: [
-            new ExtractTextPlugin('style.css', { allChunks: true })
-        ]
-    }
-];
-```
-
-The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_module` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
-
-Last of all a `.babelrc` configuration file is needed to define the presets as followings,
-
-##### .babelrc
+Nice! our query is now ready to accept variables. Run the application and write a query as followings,
 
 ```
-{
-  "presets": ["env", "react"]
+query($barcode: String!){
+  item(barcode: $barcode){
+    title
+    sellingPrice
+  }
 }
 ```
+Variable definitation starts with a `$` sign, followed by the variable type. Since we made the barcode argument non-nullable, here we also have to make sure the vaiable is non-nullable. Hence we used a `!` mark after the `String` type. 
 
-All done! Now run the `webpack` command in the terminal on the root of your project and you will have the `bundle.js` and `style.css` files generated.
+To use the variable to send data we have a `Query Variables` pane inside `GraphiQL`. Use it to configure variables as followings,
 
-On the server-side, in `Startup.cs` files, add the middlewares to serve static files and espacially the default `index.html` file,
-
-The `Configure` method should look like the following,
-
-```
-public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-{
-    app.UseDefaultFiles();
-    app.UseStaticFiles();
-
-    app.UseMiddleware<GraphQLMiddleware>();
-}
-```
-
-Now, run the application and you will be presented with the following interface,
-
-<a href="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" imageanchor="1" ><img border="0" src="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" data-original-width="1600" data-original-height="1044" /></a>
-
-On the right-hand side documentation explorer pane, you can browse through different queries and have a deep understanding of what fields are available and what they supposed to do.
-
-Some of the nice features this IDE has to offers are as followings,
-
-* Syntax highlighting
-* Intelligent type ahead of fields, arguments, types, and more.
-* Real-time error highlighting and reporting.
-* Automatic query completion.
-* Run and inspect query results.
+<a href="https://3.bp.blogspot.com/-hDuiouT7Dsw/WuW1rSLrhyI/AAAAAAAAB34/s5PoKEiDRvo_6Z1OcJgjXB6Qhv8g9viwgCLcBGAs/s1600/GraphiQL%2B%25282%2529.png" imageanchor="1" ><img border="0" src="https://3.bp.blogspot.com/-hDuiouT7Dsw/WuW1rSLrhyI/AAAAAAAAB34/s5PoKEiDRvo_6Z1OcJgjXB6Qhv8g9viwgCLcBGAs/s1600/GraphiQL%2B%25282%2529.png" data-original-width="1600" data-original-height="712" /></a>
 
 #### Repository Link (Branch)
 
-[Part IV](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_III_Dependency_Injection)
+[Part V](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_V_Fields_Arguments_Variables)
 
 #### Important Links
 
-[Github repository for GraphiQL](https://github.com/graphql/graphiql)
 
-[Concepts of webpack](https://webpack.js.org/concepts/)
+[Create Data Transfer Objects (DTOs)](https://github.com/graphql/graphiql)
 
-[React.js Hello World](https://reactjs.org/docs/hello-world.html)
+[Mapping Entity Framework Entities to DTOs with AutoMapper
+](https://exceptionnotfound.net/entity-framework-and-wcf-mapping-entities-to-dtos-with-automapper/)
 
-[Babel.js installation guide for webpack](https://babeljs.io/docs/setup/#installation)
+[GraphQL Fields](https://graphql.org/learn/queries/#fields)
+
+[GraphQL Arguments](https://graphql.org/learn/queries/#arguments)
+
+[GraphQL Variables](https://graphql.org/learn/queries/#variables)
