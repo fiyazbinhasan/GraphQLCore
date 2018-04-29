@@ -6,7 +6,7 @@ namespace GraphQLAPI
 {
     public class HelloWorldSchema : Schema
     {
-        public HelloWorldSchema(HelloWorldQuery query)
+		public HelloWorldSchema(HelloWorldQuery query)
         {
             Query = query;
         }

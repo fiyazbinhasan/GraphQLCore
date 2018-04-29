@@ -23,7 +23,7 @@ namespace GraphQLAPI
         {
             services.AddSingleton<IDocumentWriter, DocumentWriter>();
             services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
-            services.AddSingleton<HelloWorldQuery>();
+			services.AddSingleton<HelloWorldQuery>();
             services.AddSingleton<ISchema, HelloWorldSchema>();
         }
 
