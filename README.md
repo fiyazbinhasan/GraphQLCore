@@ -19,7 +19,9 @@ public class Item
 }
 ```
 
-However, we can't directly query against this object as it is not a `GraphQL` object i.e. not an `ObjectGraphType`. To make it `GraphQL` queryable, we should create a new type and extend it from `ObjectGraphType`. Another flavor of `ObjectGraphType` takes generic types. As you already guessed it, we will pass the `Item` type as its generic argument.
+However, we can't directly query against this object as it is not a `GraphQL` object i.e. not an `ObjectGraphType`. To make it `GraphQL` queryable, we should create a new type and extend it from `ObjectGraphType`. 
+
+Another flavor of `ObjectGraphType` takes generic types. As you already guessed it, we will pass the `Item` type as its generic argument.
 
 ```
 public class ItemType : ObjectGraphType<Item>
@@ -33,7 +35,7 @@ public class ItemType : ObjectGraphType<Item>
 }
 ```
 
-Two things to notice down here. First, we no longer have type declarations in the fields. It will automatically get resolved by the library i.e. dot net `string` type will be resolved to `StringGraphType`. Second, we used `lambda` expressions to resolve things like the name of the `fields`. This concept of property matching should be easy to understand for the people who are familiar with the notion of `DTOs/ViewModels`. So, whoever thinks that we are dealing with an extra burden of type creation; trust me, we are not! 
+Two things to notice down here. First, we no longer have type declarations in the fields. They will automatically get resolved by the library i.e. dot net `string` type will be resolved to `StringGraphType`. Second, we used `lambda` expressions to map properties and resolve things like the name of the `fields`. This concept of property matching should be easy to understand for the people who are familiar with the notion of `DTOs/ViewModels`. So, whoever thinks that we are dealing with an extra burden of type creation; trust me, we are not! 
 
 Next, we need to register the `ItemType` in our root query object i.e. `HelloWorldQuery`,
 
@@ -90,7 +92,7 @@ public class DataSource
 }
 ```
 
-Along with the `Items` collection, we also have a method returns a single item that matches the a passed in barcode string.
+Along with the `Items` collection, we also have a method which returns a single item that matches a passed in `barcode` string.
 
 Great! Now to pass in an argument via the query we have to modify the `item` field as followings,
 
@@ -104,7 +106,7 @@ Great! Now to pass in an argument via the query we have to modify the `item` fie
 		}
 	);
 
-There could be a list of arguments; some required and some optional. We specify an individual argument and its type with the `QueryArgument<T>`. The `Name` represents the name of the argument.
+There could be a list of arguments; some required and some optional. We specify an individual argument and its type with the `QueryArgument<T>`. The `Name` represents the name of an individual argument.
 
 Now, we can construct a query inside `GraphiQL` with pre-defined arguments as followings,
 
@@ -116,6 +118,7 @@ query {
   }
 }
 ```
+
 At this point, the barcode argument is optional. So, if you do something like below,
 
 ```
@@ -127,20 +130,20 @@ query {
 }
 ```
 
-It will throw an error saying `Error trying to resolve item.`. That's fair since we didn't really write our code in a safe way. To ensure that user always provides an argument we can make the argument nonnullable with the following syntax,
+It will throw an error saying `Error trying to resolve item.`. That's fair since we didn't really write our code in a safe way. To ensure that user always provides an argument we can make the argument non-nullable with the following syntax,
 
 ```
 QueryArgument<NonNullGraphType<StringGraphType>> { Name = "barcode" }
 ```
 
-So, if we try to execute the same query in `GraphiQL`, it will give you nice error message as followings,
+So, if we try to execute the same query in `GraphiQL`, it will give you a nice error message as followings,
 
 
 <a href="https://2.bp.blogspot.com/-VC6nHkPpd0w/WuWvMujlfLI/AAAAAAAAB3o/E-a30EOzvgUMr6EGKPrahGaVA6V6qzrTACLcBGAs/s1600/GraphiQL%2B%25281%2529.png" imageanchor="1" ><img border="0" src="https://2.bp.blogspot.com/-VC6nHkPpd0w/WuWvMujlfLI/AAAAAAAAB3o/E-a30EOzvgUMr6EGKPrahGaVA6V6qzrTACLcBGAs/s1600/GraphiQL%2B%25281%2529.png" data-original-width="1600" data-original-height="617" /></a>
 
 ### Variables
 
-It's time to make the argument itself dynamic. We dont want to construct a whole query wherever we want to change a value of an argument, do we? Hence come variables. But first we have to make sure, our `GraphQL` middleware accepts variables. Go back to the `GraphQLRequest` class and add a `Variables` property.
+It's time to make the argument itself dynamic. We don't want to construct a whole query whenever we want to change a value of an argument, do we? Hence come variables. But first, we have to make sure our `GraphQL` middleware accepts variables. Go back to the `GraphQLRequest` class and add a `Variables` property.
 
     public class GraphQLRequest
     {
@@ -169,9 +172,9 @@ query($barcode: String!){
   }
 }
 ```
-Variable definitation starts with a `$` sign, followed by the variable type. Since we made the barcode argument non-nullable, here we also have to make sure the vaiable is non-nullable. Hence we used a `!` mark after the `String` type. 
+Variable definitation starts with a `$` sign, followed by the variable type. Since we made the `barcode` argument non-nullable, here we also have to make sure the variable is non-nullable. Hence we used a `!` mark after the `String` type. 
 
-To use the variable to send data we have a `Query Variables` pane inside `GraphiQL`. Use it to configure variables as followings,
+To use the variable to transfer data we have a `Query Variables` pane inside `GraphiQL`. Use it to configure required variables as followings,
 
 <a href="https://3.bp.blogspot.com/-hDuiouT7Dsw/WuW1rSLrhyI/AAAAAAAAB34/s5PoKEiDRvo_6Z1OcJgjXB6Qhv8g9viwgCLcBGAs/s1600/GraphiQL%2B%25282%2529.png" imageanchor="1" ><img border="0" src="https://3.bp.blogspot.com/-hDuiouT7Dsw/WuW1rSLrhyI/AAAAAAAAB34/s5PoKEiDRvo_6Z1OcJgjXB6Qhv8g9viwgCLcBGAs/s1600/GraphiQL%2B%25282%2529.png" data-original-width="1600" data-original-height="712" /></a>
 
