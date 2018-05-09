@@ -19,17 +19,15 @@ namespace GraphQLAPI.Middleware
         private readonly RequestDelegate _next;
         private readonly IDocumentWriter _writer;
         private readonly IDocumentExecuter _executor;
-        private readonly ISchema _schema;
 
-        public GraphQLMiddleware(RequestDelegate next, IDocumentWriter writer, IDocumentExecuter executor, ISchema schema)
+        public GraphQLMiddleware(RequestDelegate next, IDocumentWriter writer, IDocumentExecuter executor)
         {
             _next = next;
             _writer = writer;
             _executor = executor;
-            _schema = schema;
         }
 
-        public async Task InvokeAsync(HttpContext httpContext)
+		public async Task InvokeAsync(HttpContext httpContext, ISchema schema)
         {
             if (httpContext.Request.Path.StartsWithSegments("/api/graphql") && string.Equals(httpContext.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
@@ -42,9 +40,9 @@ namespace GraphQLAPI.Middleware
 
                     var result = await _executor.ExecuteAsync(doc =>
                     {
-                        doc.Schema = _schema;
+                        doc.Schema = schema;
                         doc.Query = request.Query;
-						doc.Inputs = request.Variables.ToInputs();
+                        doc.Inputs = request.Variables.ToInputs();
                     }).ConfigureAwait(false);
 
                     var json = _writer.Write(result);
@@ -60,7 +58,7 @@ namespace GraphQLAPI.Middleware
 
     public class GraphQLRequest
     {
-		public string Query { get; set; }
-		public JObject Variables { get; set; }
+        public string Query { get; set; }
+        public JObject Variables { get; set; }
     }
 }
