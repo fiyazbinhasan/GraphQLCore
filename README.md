@@ -1,206 +1,181 @@
-# GraphQL with ASP.NET Core (Part- IV : GraphiQL - An in-browser IDE)
+# GraphQL with ASP.NET Core (Part- VI : Persist Data - Postgres with EF Core)
 
-[`GraphiQL`](https://github.com/graphql/graphiql) (spelled `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
+This post focuses more on configuring a persistent data storage rather than discussing different aspects of GraphQL. With that being said, let's connect a `Postgres` database with our back-end. You may ask, why `Postgres`? Because everybody does SQL Server; so why not try out a different thing.
 
-There are setups you have to do first. We need some packages installed. Following is the `package.json` file,
+In our data access layer, we will have a data store class or in another word a repository class. Since it's a good practice to code against abstraction; we will create an interface first for the store class i.e. IDataStore
 
+    public interface IDataStore
     {
-      "name": "GraphQLAPI",
-      "version": "1.0.0",
-      "main": "index.js",
-      "author": "Fiyaz Hasan",
-      "license": "MIT",
-      "dependencies": {
-        "graphiql": "^0.11.11",
-        "graphql": "^0.13.2",
-        "isomorphic-fetch": "^2.2.1",
-        "react": "^16.3.1",
-        "react-dom": "^16.2.0"
-      },
-      "devDependencies": {
-        "babel-cli": "^6.26.0",
-        "babel-loader": "^7.1.4",
-        "babel-preset-env": "^1.6.1",
-        "babel-preset-react": "^6.24.1",
-        "css-loader": "^0.28.11",
-        "extract-text-webpack-plugin": "^3.0.2",
-        "ignore-loader": "^0.1.2",
-        "style-loader": "^0.20.3",
-        "webpack": "^3.11.0"
-      }
+        IEnumerable<Item> GetItems();
+        Item GetItemByBarcode(string barcode);
     }
 
-Create a `package.json` file and paste the snippet. At this point, you can either use `yarn` or `npm` to install the packages.
+We are already familiar with the `GetItemByBarcode` method. The `GetItems` returns all the items in the inventory. We will add a `GraphQL` collection field for that later. 
 
-    yarn install
+The implementation of the `IDataStore` is pretty simple as following,
 
-Or
-
-    npm install
-
-Next, create a `ClientApp` folder and add the following two files with the code snippets,
-
-##### app.js
-
-```
-import React from 'react';
-import ReactDOM from 'react-dom';
-import GraphiQL from 'graphiql';
-import fetch from 'isomorphic-fetch';
-import 'graphiql/graphiql.css';
-import './app.css';
-
-function graphQLFetcher(graphQLParams) {
-  return fetch(window.location.origin + '/api/graphql', {
-    method: 'post',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(graphQLParams)
-  }).then(response => response.json());
-}
-
-ReactDOM.render(
-  <GraphiQL fetcher={graphQLFetcher} />,
-  document.getElementById('app')
-);
-```
-
-##### app.css
-
-```
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-    width: 100%
-}
-
-#app {
-    height: 100vh
-}
-```
-
-GraphiQL is a client-side library which provides a `React` component i.e. `<GraphiQL/>`. It renders the whole graphical user interface of the IDE. The component has a `fetcher` attribute which can be attached to a function. The attached function returns an HTTP promise object and it is just the mimic of the `POST` requests that we have been making with `Insomnia`/`Postman`. All of these are done in the `app.js`.
-
-Next up is the `index.html`, which will pop up once our application is served. We render the `<GraphiQL/>` component in a `div` with an id of `app`. The index file is placed under the `wwwroot` so that it is publicly available.
-
-##### index.html
-
-```
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>GraphiQL</title>
-    <link rel="stylesheet" href="/style.css" />
-</head>
-<body>
-    <div id="app"></div>
-    <script src="/bundle.js" type="text/javascript"></script>
-</body>
-</html>
-```
-
-As you can see, we have a `bundle.js` and `style.css` file being referenced. Both of them are products of running a build automation script. In our case, we have `webpack` and the script is as follows,
-
-##### webpack.config.js
-
-```
-const webpack = require('webpack');
-var path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-module.exports = [
+    public class DataStore : IDataStore
     {
-        entry: {
-            'bundle': './ClientApp/app.js',
-        },
+		private ApplicationDbContext _applicationDbContext;
 
-        output: {
-            path: path.resolve('./wwwroot'),
-            filename: '[name].js'
-        },
+		public DataStore(ApplicationDbContext applicationDbContext)
+        {
+			_applicationDbContext = applicationDbContext;
+        }
 
-        resolve: {
-            extensions: ['.js', '.json']
-        },
+        public Item GetItemByBarcode(string barcode)
+        {
+			return _applicationDbContext.Items.First(i => i.Barcode.Equals(barcode));
+        }
 
-        module: {
-            rules: [
-                { test: /\.js/, use: [{
-                    loader: 'babel-loader'
-                }], exclude: /node_modules/ },
+        public IEnumerable<Item> GetItems()
+        {
+			return _applicationDbContext.Items;
+        }
+    }
+
+We are using entity framework core, hence the introduction of `ApplicationDbContext`. The class extends from the `DbContext` of entity framework and contains a single `DbSet` for the `Item` entity. It will create a table named `Items` once we run the migration,
+
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+
+        }
+        public DbSet<Item> Items { get; set; }
+    }
+
+`DbContextOptions` is a cool way to pass parameter such as `ConnectionString` while configuring `ApplicationDbContext` inside `ConfigureServices` method of `Startup.cs`.
+
+
+```
+services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));
+```
+
+The `AddEntityFrameworkNpgsql()` entension comes from a seperate package i.e. `Npgsql.EntityFrameworkCore.PostgreSQL`. Install this via `nuget` or `dotnet cli`
+
+> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 2.0.2
+ 
+The `Configuration` property is a type of `IConfigurationRoot`. We build a configuration object and assign that to the `Configuration` property in the constructor of `Startup.cs`.
+
+    public IConfigurationRoot Configuration { get; set; }
+
+    public Startup(IHostingEnvironment env)
+    {
+        var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+
+        if (env.IsDevelopment())
+        {
+            builder.AddUserSecrets<Startup>();
+        }
+
+        builder.AddEnvironmentVariables();
+        Configuration = builder.Build();
+    }
+
+You can store the connections string in the `appsettings.json` file. For me, I always store them in the user secrets file for security reasons, hence `builder.AddUserSecrets<Startup>()`. You can add your connection string in the user secret file with the following command,
+
+> dotnet user-secrets set DefaultConnection 'your-connection-string'
+
+Add an initial migration with the following command in the terminal,
+
+> dotnet ef migrations add Initial --output-dir Data\Migrations
+
+Apply the migration to create your database with the following command,
+
+> dotnet ef database update
+
+`AddDbContext<ApplicationDbContext>()` registers the `DbContext` with a `scoped` service lifetime. Difference between singleton and scope lifetime are, 
+
+* A `Singleton` service instance is created only one time (when the application first starts) and the same instance is shared with other services for every subsequent request.
+
+* A `Scope` service instance is created everytime a new request comes in. It's like `singleton per request`.
+
+Until now, we've been registering every service with a singleton lifetime. But if we do the same for the `IDataStore` there will be some consequences,
+
+* If you notice carefully, we are injecting `ApplicationDbContext` directly in the `DataStore`. More simply, we are accessing a `scoped` service from a `singleton` service. 
+
+* Even though `scope` service instances are created per request; since we are accessing it from a `singleton` lifetime it will always return the first instance that stays with it. Hence making it behave like a singleton too.
+
+So, we must register the `IDataStore` with a `scoped` lifetime as well,
+
+    services.AddScoped<IDataStore, DataStore>();
+
+As of now, with EF Core 2.0; we still don't have any default `Seed` method. So, the following class does a minimal job of seeding a database,
+
+    public class ApplicationDatabaseInitializer
+    {
+        public async Task SeedAsync(IApplicationBuilder app)
+        {
+            using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                await applicationDbContext.Database.EnsureDeletedAsync();
+                await applicationDbContext.Database.MigrateAsync();
+                await applicationDbContext.Database.EnsureCreatedAsync();
+
+                var items = new List<Item>
                 {
-                    test: /\.css$/, use: ExtractTextPlugin.extract({
-                        fallback: "style-loader",
-                        use: "css-loader"
-                    })
-                },
-                { test: /\.flow/, use: [{
-                    loader: 'ignore-loader'
-                }] }
-            ]
-        },
+                    new Item { Barcode= "123", Title="Headphone", SellingPrice=50},
+                    new Item { Barcode= "456", Title="Keyboard", SellingPrice= 40},
+                    new Item { Barcode= "789", Title="Monitor", SellingPrice= 100}
+                };
 
-        plugins: [
-            new ExtractTextPlugin('style.css', { allChunks: true })
-        ]
+                await applicationDbContext.Items.AddRangeAsync(items);
+
+                await applicationDbContext.SaveChangesAsync();
+            }
+        }
     }
-];
-```
 
-The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_module` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
+We need to seed the database once the application starts. So, add the following line in the `Configure` method,
 
-Last of all a `.babelrc` configuration file is needed to define the presets as followings,
+    new ApplicationDatabaseInitializer().SeedAsync(app).GetAwaiter();
 
-##### .babelrc
+> We don't require any data seeding technique once we step into production. That's why I'm not so bothered about `newing` up `ApplicationDatabaseInitializer` inside the `Configure` method.
 
-```
-{
-  "presets": ["env", "react"]
-}
-```
-
-All done! Now run the `webpack` command in the terminal on the root of your project and you will have the `bundle.js` and `style.css` files generated.
-
-On the server-side, in `Startup.cs` files, add the middlewares to serve static files and espacially the default `index.html` file,
-
-The `Configure` method should look like the following,
+Other modifications include changing service lifetime for `HelloWorldQuery` and `HelloWorldSchema` to scope.
 
 ```
-public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-{
-    app.UseDefaultFiles();
-    app.UseStaticFiles();
-
-    app.UseMiddleware<GraphQLMiddleware>();
-}
+services.AddScoped<HelloWorldQuery>();
+services.AddScoped<ISchema, HelloWorldSchema>();
 ```
 
-Now, run the application and you will be presented with the following interface,
+At this moment, your application will run but it ***won't*** be able to register the schema. Always remember that a .net core middleware is registered only once when the application first starts. But to use a `scoped`/`transient` service inside a middleware we have to inject the service via the `InvokeAsync()` method,
 
-<a href="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" imageanchor="1" ><img border="0" src="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" data-original-width="1600" data-original-height="1044" /></a>
+    public async Task InvokeAsync(HttpContext httpContext, ISchema schema)
+    {
+        ....
+        ....
+    }
 
-On the right-hand side documentation explorer pane, you can browse through different queries and have a deep understanding of what fields are available and what they supposed to do.
+One last thing I want to do is to add a new collection field for showing all the items. The type of the field would be a `ListGraphType` of `ItemType`,
 
-Some of the nice features this IDE has to offers are as followings,
+    Field<ListGraphType<ItemType>>(
+        "items",
+        resolve: context =>
+        {
+            return dataStore.GetItems();
+        }
+    );
 
-* Syntax highlighting
-* Intelligent type ahead of fields, arguments, types, and more.
-* Real-time error highlighting and reporting.
-* Automatic query completion.
-* Run and inspect query results.
+Run the application now and try to query the `items` field and you will see something like the following,
+
+<a href="https://1.bp.blogspot.com/-y0awsM-MDXc/WvQdIvdEPVI/AAAAAAAAB5I/DF5Ygg2aYOQQJWCJHr9t7es9YoWdDmy6wCLcBGAs/s1600/GraphiQL.png" imageanchor="1" ><img border="0" src="https://1.bp.blogspot.com/-y0awsM-MDXc/WvQdIvdEPVI/AAAAAAAAB5I/DF5Ygg2aYOQQJWCJHr9t7es9YoWdDmy6wCLcBGAs/s1600/GraphiQL.png" data-original-width="1600" data-original-height="525" /></a>
 
 #### Repository Link (Branch)
 
-[Part IV](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_III_Dependency_Injection)
+[Part VI](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_VI_Persist_Data)
 
 #### Important Links
 
-[Github repository for GraphiQL](https://github.com/graphql/graphiql)
 
-[Concepts of webpack](https://webpack.js.org/concepts/)
+[Getting started with PostgreSQL with EF Core](http://www.npgsql.org/efcore/index.html)
 
-[React.js Hello World](https://reactjs.org/docs/hello-world.html)
+[Don't Share Your Secrets! (.NET CORE Secret Manager Tool)](http://fiyazhasan.me/dont-share-your-secrets-asp-net-core-secret-manager-tool/)
 
-[Babel.js installation guide for webpack](https://babeljs.io/docs/setup/#installation)
+[GraphQL Schema and Type](https://graphql.org/learn/schema/)
