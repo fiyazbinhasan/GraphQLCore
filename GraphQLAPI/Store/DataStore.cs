@@ -6,7 +6,7 @@ namespace GraphQLAPI.Store
 {
     public class DataStore : IDataStore
     {
-		private ApplicationDbContext _applicationDbContext;
+		private readonly ApplicationDbContext _applicationDbContext;
 
 		public DataStore(ApplicationDbContext applicationDbContext)
         {

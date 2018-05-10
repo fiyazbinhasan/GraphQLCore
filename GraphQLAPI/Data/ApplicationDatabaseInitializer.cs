@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GraphQLAPI.Data
 {
-    public class ApplicationDatabaseInitializer : IApplicationDatabaseInitializer
+    public class ApplicationDatabaseInitializer
     {
         public async Task SeedAsync(IApplicationBuilder app)
         {
@@ -30,7 +30,7 @@ namespace GraphQLAPI.Data
 
                 await applicationDbContext.Items.AddRangeAsync(items);
 
-                await applicationDbContext.SaveChangesAsync();
+				await applicationDbContext.SaveChangesAsync();
             }
         }
     }

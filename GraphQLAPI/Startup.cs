@@ -45,28 +45,24 @@ namespace GraphQLAPI
         {
             services.AddSingleton<IDocumentWriter, DocumentWriter>();
             services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
-           
-			services.AddScoped<IDependencyResolver>(s => new FuncDependencyResolver(s.GetRequiredService));
+         
+            services.AddScoped<HelloWorldQuery>();
+            services.AddScoped<ISchema, HelloWorldSchema>();
 
-			services.AddScoped<HelloWorldQuery>();
-			services.AddScoped<ISchema, HelloWorldSchema>();
-
-			services.AddScoped<ItemType>();
-			services.AddScoped<IDataStore, DataStore>();
+            services.AddScoped<ItemType>();
+            services.AddScoped<IDataStore, DataStore>();
 
             services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));
-
-            services.AddScoped<IApplicationDatabaseInitializer, ApplicationDatabaseInitializer>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationDatabaseInitializer applicationDatabaseInitializer)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-			app.UseMiddleware<GraphQLMiddleware>();
-            applicationDatabaseInitializer.SeedAsync(app);
+            app.UseMiddleware<GraphQLMiddleware>();
+			new ApplicationDatabaseInitializer().SeedAsync(app).GetAwaiter();
         }
     }
 }

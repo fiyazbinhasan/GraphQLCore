@@ -6,9 +6,9 @@ namespace GraphQLAPI
 {
     public class HelloWorldSchema : Schema
     {
-		public HelloWorldSchema(IDependencyResolver resolver) : base(resolver)
+		public HelloWorldSchema(HelloWorldQuery query)
         {
-			Query = resolver.Resolve<HelloWorldQuery>();
+			Query = query;
         }
     }
 }
