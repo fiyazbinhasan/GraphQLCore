@@ -16,21 +16,21 @@ The implementation of the `IDataStore` is pretty simple as following,
 
     public class DataStore : IDataStore
     {
-		private ApplicationDbContext _applicationDbContext;
+	private ApplicationDbContext _applicationDbContext;
 
-		public DataStore(ApplicationDbContext applicationDbContext)
+	public DataStore(ApplicationDbContext applicationDbContext)
         {
-			_applicationDbContext = applicationDbContext;
+		_applicationDbContext = applicationDbContext;
         }
 
         public Item GetItemByBarcode(string barcode)
         {
-			return _applicationDbContext.Items.First(i => i.Barcode.Equals(barcode));
+		return _applicationDbContext.Items.First(i => i.Barcode.Equals(barcode));
         }
 
         public IEnumerable<Item> GetItems()
         {
-			return _applicationDbContext.Items;
+		return _applicationDbContext.Items;
         }
     }
 
