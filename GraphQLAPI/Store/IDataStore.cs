@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GraphQLAPI.Store
 {
@@ -6,5 +7,6 @@ namespace GraphQLAPI.Store
     {
         IEnumerable<Item> GetItems();
         Item GetItemByBarcode(string barcode);
+        Task<Item> AddItem(Item item);
     }
 }

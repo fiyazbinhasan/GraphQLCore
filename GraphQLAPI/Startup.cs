@@ -46,10 +46,12 @@ namespace GraphQLAPI
             services.AddSingleton<IDocumentWriter, DocumentWriter>();
             services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
          
-            services.AddScoped<HelloWorldQuery>();
-            services.AddScoped<ISchema, HelloWorldSchema>();
+            services.AddScoped<InventoryQuery>();
+            services.AddScoped<InventoryMutation>();
+            services.AddScoped<ISchema, InventorySchema>();
 
             services.AddScoped<ItemType>();
+            services.AddScoped<ItemInputType>();
             services.AddScoped<IDataStore, DataStore>();
 
             services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));

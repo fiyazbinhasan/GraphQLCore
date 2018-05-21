@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using GraphQLAPI.Data;
 
 namespace GraphQLAPI.Store
@@ -11,6 +12,12 @@ namespace GraphQLAPI.Store
 		public DataStore(ApplicationDbContext applicationDbContext)
         {
 			_applicationDbContext = applicationDbContext;
+        }
+
+        public async Task<Item> AddItem(Item item)
+        {
+            var addedItem = await _applicationDbContext.Items.AddAsync(item);
+            return addedItem.Entity;
         }
 
         public Item GetItemByBarcode(string barcode)
