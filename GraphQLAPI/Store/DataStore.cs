@@ -17,6 +17,7 @@ namespace GraphQLAPI.Store
         public async Task<Item> AddItem(Item item)
         {
             var addedItem = await _applicationDbContext.Items.AddAsync(item);
+			await _applicationDbContext.SaveChangesAsync();
             return addedItem.Entity;
         }
 

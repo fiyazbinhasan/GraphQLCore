@@ -11,19 +11,7 @@ namespace GraphQLAPI
     public class InventoryMutation : ObjectGraphType
     {
         public InventoryMutation(IDataStore dataStore)
-        {
-            /*
-            
-            mutation ($item: ItemInput!) {
-  createItem(item: $item) {
-    barcode
-    title
-    sellingPrice
-  }
-}
-
-             */
-
+        {         
             Field<ItemType>(
                 "createItem",
                 arguments: new QueryArguments(
