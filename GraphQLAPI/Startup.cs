@@ -42,7 +42,8 @@ namespace GraphQLAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
-        {
+		{         
+            services.AddScoped<IDependencyResolver>(s => new FuncDependencyResolver(s.GetRequiredService));
             services.AddSingleton<IDocumentWriter, DocumentWriter>();
             services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
          
@@ -52,6 +53,13 @@ namespace GraphQLAPI
 
             services.AddScoped<ItemType>();
             services.AddScoped<ItemInputType>();
+
+			services.AddScoped<CustomerType>();
+            services.AddScoped<CustomerInput>();
+
+			services.AddScoped<OrderType>();
+			services.AddScoped<OrderInputType>();
+
             services.AddScoped<IDataStore, DataStore>();
 
             services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));

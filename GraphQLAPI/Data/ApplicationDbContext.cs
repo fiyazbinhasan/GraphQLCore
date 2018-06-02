@@ -1,3 +1,4 @@
+using GraphQLAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GraphQLAPI.Data
@@ -8,6 +9,8 @@ namespace GraphQLAPI.Data
         {
 
         }
-        public DbSet<Item> Items { get; set; }
+		public DbSet<Item> Items { get; set; }
+		public DbSet<Customer> Customers { get; set; }
+		public DbSet<Order> Orders { get; set; }
     }
 }

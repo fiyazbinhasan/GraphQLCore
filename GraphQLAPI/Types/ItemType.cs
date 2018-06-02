@@ -1,4 +1,5 @@
 using GraphQL.Types;
+using GraphQLAPI.Models;
 
 namespace GraphQLAPI.Types
 {
@@ -6,10 +7,8 @@ namespace GraphQLAPI.Types
     {
         public ItemType()
         {
-            Field(i => i.Barcode);
-
-            Field(i => i.Title);
-
+            Field(i => i.Barcode);         
+            Field(i => i.Title);         
             Field(i => i.SellingPrice);
         }
     }
