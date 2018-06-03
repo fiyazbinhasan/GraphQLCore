@@ -19,7 +19,7 @@ namespace GraphQLAPI
 				.ResolveAsync(ctx =>
 			    {
 				    var item = ctx.GetArgument<Item>("item");
-				    return dataStore.AddItemAsync(item);
+				    return dataStore.CreateItemAsync(item);
 			    });
 
 			Field<OrderType, Order>()
@@ -28,7 +28,7 @@ namespace GraphQLAPI
 				.ResolveAsync(ctx =>
 				{
 					var order = ctx.GetArgument<Order>("order");
-					return dataStore.AddOrderAsync(order);
+				    return dataStore.CreateOrderAsync(order);
 				});
 
 			Field<CustomerType, Customer>()
@@ -37,8 +37,17 @@ namespace GraphQLAPI
                 .ResolveAsync(ctx =>
                 {
 				    var customer = ctx.GetArgument<Customer>("customer");
-                    return dataStore.AddCustomerAsync(customer);
+                    return dataStore.CreateCustomerAsync(customer);
                 });
+
+			Field<OrderItemType, OrderItem>()
+				.Name("addOrderItem")
+				.Argument<NonNullGraphType<OrderItemInputType>>("orderitem", "orderitem input")
+				.ResolveAsync(ctx =>
+				{
+				    var orderItem = ctx.GetArgument<OrderItem>("orderitem");
+				    return dataStore.AddOrderItemAsync(orderItem);
+				});
         }
     }
 }

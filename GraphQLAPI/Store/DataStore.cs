@@ -26,40 +26,62 @@ namespace GraphQLAPI.Store
 			return _applicationDbContext.Items.FirstAsync(i => i.Barcode.Equals(barcode));
 		}
 
-        public async Task<Item> AddItemAsync(Item item)
+        public async Task<Item> GetItemByIdAsync(int itemId)
+        {
+            return await _applicationDbContext.Items.FindAsync(itemId);
+        }
+
+        public async Task<Item> CreateItemAsync(Item item)
         {
             var addedItem = await _applicationDbContext.Items.AddAsync(item);
             await _applicationDbContext.SaveChangesAsync();
             return addedItem.Entity;
         }
+
+		public async Task<IEnumerable<Customer>> GetCustomersAsync()
+        {
+            return await _applicationDbContext.Customers.AsNoTracking().ToListAsync();
+        }
+
+		public async Task<Customer> CreateCustomerAsync(Customer customer)
+        {         
+            var addedCustomer = await _applicationDbContext.Customers.AddAsync(customer);
+            await _applicationDbContext.SaveChangesAsync();
+            return addedCustomer.Entity;
+        }      
       
 		public async Task<IEnumerable<Order>> GetOrdersAsync()
 		{
 			return await _applicationDbContext.Orders.AsNoTracking().ToListAsync();
-		}            
+		}           
 
-        public async Task<Order> AddOrderAsync(Order order)
+        public async Task<Order> GetOrderByIdAsync(int orderId)
+        {
+            return await _applicationDbContext.Orders.FindAsync(orderId);
+		}       
+
+        public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
+        {
+            return await _applicationDbContext.Orders.Where(o => o.CustomerId == customerId).ToListAsync();
+        }
+
+        public async Task<Order> CreateOrderAsync(Order order)
         {
             var addedOrder = await _applicationDbContext.Orders.AddAsync(order);
             await _applicationDbContext.SaveChangesAsync();
             return addedOrder.Entity;
         }
 
-        public async Task<IEnumerable<Customer>> GetCustomersAsync()
-        {
-            return await _applicationDbContext.Customers.AsNoTracking().ToListAsync();
+        public async Task<IEnumerable<OrderItem>> GetOrderItemAsync()
+        {         
+			return await _applicationDbContext.OrderItem.AsNoTracking().ToListAsync();
         }
 
-		public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
-		{
-			return await _applicationDbContext.Orders.Where(o => o.CustomerId == customerId).ToListAsync();
-		}
-
-		public async Task<Customer> AddCustomerAsync(Customer customer)
+		public async Task<OrderItem> AddOrderItemAsync(OrderItem orderItem)
 		{         
-			var addedCustomer = await _applicationDbContext.Customers.AddAsync(customer);
+			var addedOrderItem = await _applicationDbContext.OrderItem.AddAsync(orderItem);
             await _applicationDbContext.SaveChangesAsync();
-			return addedCustomer.Entity;
-		}
+			return addedOrderItem.Entity;
+		}      
 	}
 }

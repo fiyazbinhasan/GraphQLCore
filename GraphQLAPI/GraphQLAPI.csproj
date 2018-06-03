@@ -15,4 +15,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Types\OrderItemScalerType.cs" />
+  </ItemGroup>
 </Project>

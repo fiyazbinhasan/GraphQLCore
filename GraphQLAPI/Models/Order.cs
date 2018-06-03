@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace GraphQLAPI.Models
 {
     public class Order
@@ -9,5 +11,7 @@ namespace GraphQLAPI.Models
 
         public Customer Customer { get; set; }
 		public int CustomerId { get; set; }
+      
+        public IEnumerable<OrderItem> OrderItems { get; set; }
 	}
 }

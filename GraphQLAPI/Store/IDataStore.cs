@@ -7,14 +7,19 @@ namespace GraphQLAPI.Store
     public interface IDataStore
     {
 		Task<IEnumerable<Item>> GetItemsAsync();
-        Task<Item> GetItemByBarcodeAsync(string barcode);
-        Task<Item> AddItemAsync(Item item);
-      
-		Task<IEnumerable<Order>> GetOrdersAsync();
-		Task<Order> AddOrderAsync(Order order);
+		Task<Item> GetItemByBarcodeAsync(string barcode);
+        Task<Item> GetItemByIdAsync(int itemId);
+        Task<Item> CreateItemAsync(Item item);
 
-		Task<IEnumerable<Customer>> GetCustomersAsync();
+        Task<IEnumerable<Customer>> GetCustomersAsync();
+        Task<Customer> CreateCustomerAsync(Customer customer);
+
+		Task<IEnumerable<Order>> GetOrdersAsync();
+		Task<Order> GetOrderByIdAsync(int orderId);
         Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId);
-		Task<Customer> AddCustomerAsync(Customer customer);
+		Task<Order> CreateOrderAsync(Order order);      
+
+		Task<IEnumerable<OrderItem>> GetOrderItemAsync();
+		Task<OrderItem> AddOrderItemAsync(OrderItem orderItem);
 	}
 }

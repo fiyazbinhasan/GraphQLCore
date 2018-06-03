@@ -60,6 +60,9 @@ namespace GraphQLAPI
 			services.AddScoped<OrderType>();
 			services.AddScoped<OrderInputType>();
 
+            services.AddScoped<OrderItemType>();
+            services.AddScoped<OrderItemInputType>();
+
             services.AddScoped<IDataStore, DataStore>();
 
             services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));

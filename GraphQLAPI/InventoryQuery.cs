@@ -41,6 +41,13 @@ namespace GraphQLAPI
                 {
                     return dataStore.GetCustomersAsync();
                 });
+
+			Field<ListGraphType<OrderItemType>, IEnumerable<OrderItem>>()
+                .Name("OrderItem")
+                .ResolveAsync(ctx =>
+                {
+				    return dataStore.GetOrderItemAsync();
+                });
         }
     }
 }
