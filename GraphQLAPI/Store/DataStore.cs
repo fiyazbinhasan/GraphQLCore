@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GraphQLAPI.Data;
 using GraphQLAPI.Models;
@@ -29,7 +30,12 @@ namespace GraphQLAPI.Store
         public async Task<Item> GetItemByIdAsync(int itemId)
         {
             return await _applicationDbContext.Items.FindAsync(itemId);
-        }
+        }      
+
+        public async Task<Dictionary<int, Item>> GetItemsByIdAsync(IEnumerable<int> itemIds, CancellationToken token)
+        {
+            return await _applicationDbContext.Items.Where(i => itemIds.Contains(i.ItemId)).ToDictionaryAsync(x => x.ItemId);
+        }      
 
         public async Task<Item> CreateItemAsync(Item item)
         {
@@ -46,6 +52,11 @@ namespace GraphQLAPI.Store
         public async Task<Customer> GetCustomerByIdAsync(int customerId)
         {
             return await _applicationDbContext.Customers.FindAsync(customerId);
+        }      
+        
+		public async Task<Dictionary<int, Customer>> GetCustomersByIdAsync(IEnumerable<int> customerIds, CancellationToken token)
+        {
+            return await _applicationDbContext.Customers.Where(i => customerIds.Contains(i.CustomerId)).ToDictionaryAsync(x => x.CustomerId);
         }
 
 		public async Task<Customer> CreateCustomerAsync(Customer customer)
@@ -63,11 +74,22 @@ namespace GraphQLAPI.Store
         public async Task<Order> GetOrderByIdAsync(int orderId)
         {
             return await _applicationDbContext.Orders.FindAsync(orderId);
-		}       
+		}         
+      
+        public async Task<Dictionary<int, Order>> GetOrdersByIdAsync(IEnumerable<int> orderIds, CancellationToken token)
+        {
+			return await _applicationDbContext.Orders.Where(i => orderIds.Contains(i.OrderId)).ToDictionaryAsync(x => x.OrderId);
+        }
 
         public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
         {
             return await _applicationDbContext.Orders.Where(o => o.CustomerId == customerId).ToListAsync();
+		}
+
+        public async Task<ILookup<int, Order>> GetOrdersByCustomerIdAsync(IEnumerable<int> customerIds)
+        {
+            var orders = await _applicationDbContext.Orders.Where(i => customerIds.Contains(i.CustomerId)).ToListAsync();
+            return orders.ToLookup(i => i.CustomerId);
         }
 
         public async Task<Order> CreateOrderAsync(Order order)

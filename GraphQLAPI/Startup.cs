@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Microsoft.EntityFrameworkCore;
+using GraphQL.DataLoader;
 
 namespace GraphQLAPI
 {
@@ -44,8 +45,12 @@ namespace GraphQLAPI
         public void ConfigureServices(IServiceCollection services)
 		{         
             services.AddScoped<IDependencyResolver>(s => new FuncDependencyResolver(s.GetRequiredService));
+
             services.AddSingleton<IDocumentWriter, DocumentWriter>();
             services.AddSingleton<IDocumentExecuter, DocumentExecuter>();
+
+			services.AddSingleton<IDataLoaderContextAccessor, DataLoaderContextAccessor>();
+            services.AddSingleton<DataLoaderDocumentListener>();
          
             services.AddScoped<InventoryQuery>();
             services.AddScoped<InventoryMutation>();

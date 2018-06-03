@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Http;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using GraphQL.Types;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using GraphQL.DataLoader;
 
 namespace GraphQLAPI.Middleware
 {
-    // You may need to install the Microsoft.AspNetCore.Http.Abstractions package into your project
-    public class GraphQLMiddleware
+	public class GraphQLMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly IDocumentWriter _writer;
@@ -27,7 +25,7 @@ namespace GraphQLAPI.Middleware
             _executor = executor;
         }
 
-		public async Task InvokeAsync(HttpContext httpContext, ISchema schema)
+		public async Task InvokeAsync(HttpContext httpContext, ISchema schema, IServiceProvider serviceProvider)
         {
             if (httpContext.Request.Path.StartsWithSegments("/api/graphql") && string.Equals(httpContext.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
@@ -43,6 +41,7 @@ namespace GraphQLAPI.Middleware
                         doc.Schema = schema;
                         doc.Query = request.Query;
                         doc.Inputs = request.Variables.ToInputs();
+						doc.Listeners.Add(serviceProvider.GetRequiredService<DataLoaderDocumentListener>());
                     }).ConfigureAwait(false);
 
                     var json = _writer.Write(result);
