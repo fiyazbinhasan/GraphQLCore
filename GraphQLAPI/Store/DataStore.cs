@@ -41,6 +41,11 @@ namespace GraphQLAPI.Store
 		public async Task<IEnumerable<Customer>> GetCustomersAsync()
         {
             return await _applicationDbContext.Customers.AsNoTracking().ToListAsync();
+		}
+
+        public async Task<Customer> GetCustomerByIdAsync(int customerId)
+        {
+            return await _applicationDbContext.Customers.FindAsync(customerId);
         }
 
 		public async Task<Customer> CreateCustomerAsync(Customer customer)
@@ -82,6 +87,6 @@ namespace GraphQLAPI.Store
 			var addedOrderItem = await _applicationDbContext.OrderItem.AddAsync(orderItem);
             await _applicationDbContext.SaveChangesAsync();
 			return addedOrderItem.Entity;
-		}      
+		}
 	}
 }

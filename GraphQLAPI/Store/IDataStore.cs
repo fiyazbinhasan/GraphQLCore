@@ -12,6 +12,7 @@ namespace GraphQLAPI.Store
         Task<Item> CreateItemAsync(Item item);
 
         Task<IEnumerable<Customer>> GetCustomersAsync();
+		Task<Customer> GetCustomerByIdAsync(int customerId);
         Task<Customer> CreateCustomerAsync(Customer customer);
 
 		Task<IEnumerable<Order>> GetOrdersAsync();
