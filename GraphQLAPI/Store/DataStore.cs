@@ -48,6 +48,11 @@ namespace GraphQLAPI.Store
         public async Task<IEnumerable<Customer>> GetCustomersAsync()
         {
             return await _applicationDbContext.Customers.AsNoTracking().ToListAsync();
+		}
+
+        public async Task<Customer> GetCustomerByIdAsync(int customerId)
+        {
+			return await _applicationDbContext.Customers.FindAsync(customerId);
         }
 
 		public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
