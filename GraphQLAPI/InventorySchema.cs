@@ -4,12 +4,12 @@ using GraphQL.Types;
 
 namespace GraphQLAPI
 {
-    public class InventorySchema : Schema
+public class InventorySchema : Schema
+{
+	public InventorySchema(IDependencyResolver resolver) : base(resolver)
     {
-		public InventorySchema(IDependencyResolver resolver) : base(resolver)
-        {
-			Query = resolver.Resolve<InventoryQuery>();
-			Mutation = resolver.Resolve<InventoryMutation>();
-        }
+		Query = resolver.Resolve<InventoryQuery>();
+		Mutation = resolver.Resolve<InventoryMutation>();
     }
+}
 }

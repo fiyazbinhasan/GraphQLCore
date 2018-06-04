@@ -36,35 +36,35 @@ namespace GraphQLAPI.Store
 		public async Task<IEnumerable<Order>> GetOrdersAsync()
 		{
 			return await _applicationDbContext.Orders.AsNoTracking().ToListAsync();
-		}            
-
-        public async Task<Order> AddOrderAsync(Order order)
-        {
-            var addedOrder = await _applicationDbContext.Orders.AddAsync(order);
-            await _applicationDbContext.SaveChangesAsync();
-            return addedOrder.Entity;
-        }
+		}                        
 
         public async Task<IEnumerable<Customer>> GetCustomersAsync()
         {
             return await _applicationDbContext.Customers.AsNoTracking().ToListAsync();
-		}
+        }
 
         public async Task<Customer> GetCustomerByIdAsync(int customerId)
         {
-			return await _applicationDbContext.Customers.FindAsync(customerId);
+            return await _applicationDbContext.Customers.FindAsync(customerId);
         }
 
-		public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
-		{
-			return await _applicationDbContext.Orders.Where(o => o.CustomerId == customerId).ToListAsync();
-		}
+        public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
+        {
+            return await _applicationDbContext.Orders.Where(o => o.CustomerId == customerId).ToListAsync();
+        }
 
-		public async Task<Customer> AddCustomerAsync(Customer customer)
-		{         
-			var addedCustomer = await _applicationDbContext.Customers.AddAsync(customer);
-            await _applicationDbContext.SaveChangesAsync();
-			return addedCustomer.Entity;
-		}
+public async Task<Order> AddOrderAsync(Order order)
+{
+    var addedOrder = await _applicationDbContext.Orders.AddAsync(order);
+    await _applicationDbContext.SaveChangesAsync();
+    return addedOrder.Entity;
+}
+
+public async Task<Customer> AddCustomerAsync(Customer customer)
+{         
+	var addedCustomer = await _applicationDbContext.Customers.AddAsync(customer);
+    await _applicationDbContext.SaveChangesAsync();
+	return addedCustomer.Entity;
+}
 	}
 }
