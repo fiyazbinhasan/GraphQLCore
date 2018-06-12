@@ -3,9 +3,9 @@ using GraphQL.Types;
 
 namespace GraphQLAPI.Types
 {
-	public class CustomerInput : InputObjectGraphType
+	public class CustomerInputType : InputObjectGraphType
     {
-		public CustomerInput()
+        public CustomerInputType()
         {
 			Name = "CustomerInput";
             Field<NonNullGraphType<StringGraphType>>("name");
