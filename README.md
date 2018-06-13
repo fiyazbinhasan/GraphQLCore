@@ -7,15 +7,17 @@ By EF conventions, in a many-to-many relation, you have two standalone entities 
 *OrderItem.cs*
 
 ```
-public class OrderItem
+public class OrderItem  
 {
-  public int Id { get; set; }
-  public int ItemId { get; set; }
-  public Item Item { get; set; }
-  
-  public int Quantity { get; set; }      
-  public int OrderId { get; set; }
-  public Order Order { get; set; }
+    public int Id { get; set; }
+
+    public int ItemId { get; set; }
+    public Item Item { get; set; }
+
+    public int Quantity { get; set; }      
+
+    public int OrderId { get; set; }
+    public Order Order { get; set; }
 }
 ```
 
@@ -26,23 +28,23 @@ For a fully defined relationship, we also have  individual collection navigation
 *Order.cs*
 
 ```
-public class Order
+public class Order  
 {
-	public int OrderId { get; set; }
-	public string Tag { get; set;}
-	public DateTime CreatedAt { get; set;}
+    public int OrderId { get; set; }
+    public string Tag { get; set;}
+    public DateTime CreatedAt { get; set;}
 
-  public Customer Customer { get; set; }
-	public int CustomerId { get; set; }
-  
-  public IEnumerable<OrderItem> OrderItems { get; set; }
+    public Customer Customer { get; set; }
+    public int CustomerId { get; set; }
+
+    public IEnumerable<OrderItem> OrderItems { get; set; }
 }
 ```
 
 *Item.cs*
 
 ```
-public class Item
+public class Item  
 {
     public int ItemId { get; set; }
     public string Barcode { get; set; }
@@ -65,14 +67,14 @@ Now, we can add a `GraphQL` end-point for adding an item to a particular order. 
 *OrderItemInputType.cs*
 
 ```
-public class OrderItemInputType : InputObjectGraphType
+public class OrderItemInputType : InputObjectGraphType  
 {
-	public OrderItemInputType()
+    public OrderItemInputType()
     {
-		Name = "OrderItemInput";
-		Field<NonNullGraphType<IntGraphType>>("quantity");
-		Field<NonNullGraphType<IntGraphType>>("itemId");
-		Field<NonNullGraphType<IntGraphType>>("orderId");
+        Name = "OrderItemInput";
+        Field<NonNullGraphType<IntGraphType>>("quantity");
+        Field<NonNullGraphType<IntGraphType>>("itemId");
+        Field<NonNullGraphType<IntGraphType>>("orderId");
     }
 }
 ```
@@ -82,14 +84,14 @@ As for the end-point, we registered a new mutation field inside `InventoryMutati
 *InventoryMutation.cs*
 
 ```
-Field<OrderItemType, OrderItem>()
-	.Name("addOrderItem")
-	.Argument<NonNullGraphType<OrderItemInputType>>("orderitem", "orderitem input")
-	.ResolveAsync(ctx =>
-	{
-	    var orderItem = ctx.GetArgument<OrderItem>("orderitem");
-	    return dataStore.AddOrderItemAsync(orderItem);
-	});
+Field<OrderItemType, OrderItem>()  
+    .Name("addOrderItem")
+    .Argument<NonNullGraphType<OrderItemInputType>>("orderitem", "orderitem input")
+    .ResolveAsync(ctx =>
+    {
+        var orderItem = ctx.GetArgument<OrderItem>("orderitem");
+        return dataStore.AddOrderItemAsync(orderItem);
+    });
 ```
 
 Newly added `OrderItemType` is as following,
@@ -97,26 +99,25 @@ Newly added `OrderItemType` is as following,
 *OrderItemType.cs*
 
 ```
-public class OrderItemType : ObjectGraphType<OrderItem>
+public class OrderItemType : ObjectGraphType<OrderItem>  
 {
-	public OrderItemType(IDataStore dateStore)
-	{   
+    public OrderItemType(IDataStore dateStore)
+    {   
         Field(i => i.ItemId);      
 
-		Field<ItemType, Item>().Name("Item").ResolveAsync(ctx =>
+        Field<ItemType, Item>().Name("Item").ResolveAsync(ctx =>
         {
-			return dateStore.GetItemByIdAsync(ctx.Source.ItemId);
+            return dateStore.GetItemByIdAsync(ctx.Source.ItemId);
         });         
 
-		Field(i => i.Quantity);
+        Field(i => i.Quantity);
 
-		Field(i => i.OrderId);
+        Field(i => i.OrderId);
 
         Field<OrderType, Order>().Name("Order").ResolveAsync(ctx =>
         {
-			return dateStore.GetOrderByIdAsync(ctx.Source.OrderId);
+            return dateStore.GetOrderByIdAsync(ctx.Source.OrderId);
         });
-
     }
 }
 ```
@@ -126,21 +127,21 @@ Newly registered methods from `DataStore.cs` are as folliwng,
 *DataStore.cs*
 
 ```
-public async Task<Item> GetItemByIdAsync(int itemId)
+public async Task<Item> GetItemByIdAsync(int itemId)  
 {
     return await _applicationDbContext.Items.FindAsync(itemId);
 }
 
-public async Task<Order> GetOrderByIdAsync(int orderId)
+public async Task<Order> GetOrderByIdAsync(int orderId)  
 {
     return await _applicationDbContext.Orders.FindAsync(orderId);
 }
 
-public async Task<OrderItem> AddOrderItemAsync(OrderItem orderItem)
+public async Task<OrderItem> AddOrderItemAsync(OrderItem orderItem)  
 {         
-	var addedOrderItem = await _applicationDbContext.OrderItem.AddAsync(orderItem);
+    var addedOrderItem = await _applicationDbContext.OrderItem.AddAsync(orderItem);
     await _applicationDbContext.SaveChangesAsync();
-	return addedOrderItem.Entity;
+    return addedOrderItem.Entity;
 }
 ```
 
@@ -149,11 +150,11 @@ I've also threw in an additional field for querying a list of all the `OrderItem
 *InventoryQuery.cs*
 
 ```
-Field<ListGraphType<OrderItemType>, IEnumerable<OrderItem>>()
+Field<ListGraphType<OrderItemType>, IEnumerable<OrderItem>>()  
     .Name("OrderItem")
     .ResolveAsync(ctx =>
     {
-	    return dataStore.GetOrderItemAsync();
+        return dataStore.GetOrderItemAsync();
     });
 ```
 
@@ -162,9 +163,9 @@ Repository code for `GetOrderItemAsync` is as following,
 *DataStore.cs*
 
 ```
-public async Task<IEnumerable<OrderItem>> GetOrderItemAsync()
+public async Task<IEnumerable<OrderItem>> GetOrderItemAsync()  
 {         
-	return await _applicationDbContext.OrderItem.AsNoTracking().ToListAsync();
+    return await _applicationDbContext.OrderItem.AsNoTracking().ToListAsync();
 }
 ```
 
