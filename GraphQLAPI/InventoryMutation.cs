@@ -33,7 +33,7 @@ namespace GraphQLAPI
 
 			Field<CustomerType, Customer>()
                 .Name("createCustomer")
-				.Argument<NonNullGraphType<CustomerInput>>("customer", "customer input")
+                .Argument<NonNullGraphType<CustomerInputType>>("customer", "customer input")
                 .ResolveAsync(ctx =>
                 {
 				    var customer = ctx.GetArgument<Customer>("customer");

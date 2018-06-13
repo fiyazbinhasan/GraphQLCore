@@ -60,7 +60,7 @@ namespace GraphQLAPI
             services.AddScoped<ItemInputType>();
 
 			services.AddScoped<CustomerType>();
-            services.AddScoped<CustomerInput>();
+            services.AddScoped<CustomerInputType>();
 
 			services.AddScoped<OrderType>();
 			services.AddScoped<OrderInputType>();
