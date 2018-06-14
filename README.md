@@ -200,5 +200,7 @@ Field<ListGraphType<ItemType>, IEnumerable<Item>>()
 
 [GraphQl-Dontnet DataLoader](https://graphql-dotnet.github.io/dataloader/)
 
-[Batching GraphQL Queries with DataLoader](Batching GraphQL Queries with DataLoader)
+[Batching GraphQL Queries with DataLoader](http://www.petecorey.com/blog/2017/08/14/batching-graphql-queries-with-dataloader/)
+
+[Facebook DataLoader](https://github.com/facebook/dataloader)
  
