@@ -1,4 +1,4 @@
-# GraphQL with ASP.NET Core (Part- XI : Data Loader - Series Finale)
+# GraphQL with ASP.NET Core (Part- X : Data Loader - Series Finale)
 
 Our `GraphQL` queries are not quite optimized. Take the `Orders` query from `CustomerType` for example,
 
