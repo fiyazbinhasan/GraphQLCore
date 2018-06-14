@@ -129,7 +129,7 @@ Field<CustomerType, Customer>()
     });
 ```
 
-> Idea behind `GetOrAddBatchLoader` is that it waits until all the customer ids are queued. Then it fires of the `GetCustomersByIdAsync` method only once with all the collected ids. Once the dictionary of customers is returned with the passed in ids; a customer that belongs to a particular order is returned from the field with some internal object mapping. Remember, this technique of queueing up ids is called batching. We will always have a single request to load related customers for orders no matter what i.e. we will at most have 2 requests.
+> Idea behind `GetOrAddBatchLoader` is that it waits until all the customer ids are queued. Then it fires of the `GetCustomersByIdAsync` method only when all the ids are collected. Once the dictionary of customers is returned with the passed in ids; a customer that belongs to a particular order is returned from the field with some internal object mapping. Remember, this technique of queueing up ids is called batching. We will always have a single request to load related customers for orders no matter what i.e. we will at most have 2 requests.
 
 Running the application and firing the same query as before will provide you the following query logs.
 
@@ -178,7 +178,7 @@ Field<ListGraphType<OrderType>, IEnumerable<Order>>()
 
 `GetOrAddCollectionBatchLoader` and `GetOrAddBatchLoader` both caches the values of the field for the lifetime of a `GraphQl` query. If you only want to use the caching feature and ignore batching, you can simply use the `GetOrAddLoader`. 
 
-Caching is good for fields you request too frequently. So, you can add caching feature in your `Items` field of the `InventoryQuery` as following,
+Caching is good for fields you request too frequently. So, you can add caching in your `Items` field of the `InventoryQuery` as following,
 
 *InventoryQuery.cs*
 
