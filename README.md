@@ -3,7 +3,7 @@
 The letter 'D' in [SOLID](https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)) stands for `Dependency inversion principle`. The principle states,
 
 > * A. High-level modules should not depend on low-level modules. Both should depend on abstractions.
-> * Abstractions should not depend on details. Details should depend on abstractions. [Wikipedia](https://en.wikipedia.org/wiki/Dependency_inversion_principle)
+> * B. Abstractions should not depend on details. Details should depend on abstractions. [Wikipedia](https://en.wikipedia.org/wiki/Dependency_inversion_principle)
 
 Newing up instances cause strict coupling between separate code modules. To keep them decoupled from each other, we follow the 'Dependency Inversion Principle'. In this way the modules are not dependent on each other's concrete implementation rather they are dependent upon abstractions e.g. interfaces.
 
