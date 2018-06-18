@@ -51,10 +51,10 @@ Coming Soon...
 
 # Mentions
 
-[Joe McBride](https://twitter.com/UICraftsman) - For providing an awesome community driven project 
+[Joe McBride](https://twitter.com/UICraftsman) - Thanks for providing an awesome community driven project 
 > [graphql-dotnet](https://github.com/graphql-dotnet/graphql-dotnet)
 
-[Jon Galloway](https://twitter.com/jongalloway) - For featuring posts on ASP.NET Community Standup
+[Jon Galloway](https://twitter.com/jongalloway) - Thanks for featuring posts on ASP.NET Community Standup
 
 
  
