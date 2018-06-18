@@ -1,206 +1,58 @@
-# GraphQL with ASP.NET Core (Part- X : Data Loader - Series Finale)
+# GraphQL with ASP.NET Core - A 10 Part Blog Series
 
-Our `GraphQL` queries are not quite optimized. Take the `Orders` query from `CustomerType` for example,
+This repository contains a series of posts with branch wise code on builing scalable GraphQL end-points with ASP.NET Core. Each branch has its own readme where you can find rach relevent post. You can also read the series from my blog, 
 
-*CustomerType.cs*
+http://fiyazhasan.me/tag/graphql-dotnet/
 
-```
-Field<ListGraphType<OrderType>, IEnumerable<Order>>()
-    .Name("Orders")
-    .ResolveAsync(ctx =>
-    {
-	    return dataStore.GetOrdersAsync();
-    }); 
-```
+Ask anything you want in the comment section of my blog.
 
-Here, we are getting all the orders from the data store. This is all fun and games till you stay in the scaler zone of `OrderType` i.e. only querying the scaler properties of `OrderType`. But what happens when you query for one of the navigational property. For example, code in the `OrderType` is as following,
+# Running the application
 
-*OrderType.cs*
+* Download the zip or clone the project
+* Make sure you have necessary dotnet core sdks installed (I'm using ASP.NET Core 2.1)
+>  https://www.microsoft.com/net/download/windows
+* Make sure you have Postgres installed in your system
+> https://postgresapp.com/
+* Change the connection string in `appsettings.json` to target your local posgres database.
+* From command line go to the root of the project and create a db migration script
+> dotnet ef migrations add Initial -o Data/Migrations
+* Apply migration in your database
+> dotnet ef database update
+* Build and run the project
+> dotnet build
+> dotnnet run
 
-```
-public OrderType(IDataStore dataStore, IDataLoaderContextAccessor accessor)
-{
-	Field(o => o.Tag);
-	Field(o => o.CreatedAt);
-	Field<CustomerType, Customer>()
-		.Name("Customer")
-		.ResolveAsync(ctx =>
-	    {            
-		    return dataStore.GetCustomerByIdAsync(ctx.Source.CustomerId);  
-	    });
-}
-```
+# Branches
 
-So, when you try to access the `Customer` field, practically you are initiating a separate request to your data store to load the related customer for a particular order.
+[Part I - Hello World](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_I_Hello_World)
 
-If you are using the dotnet cli, you can actually see all the EF query logs in the console for a query such as,
+[Part II - Middleware](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_II_Middleware)
 
-```
-{
-  orders{
-    tag
-    createdAt
-    customer{
-      name
-      billingAddress
-    }
-  }
-}
-``` 
-*Logs*
-```
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT "o"."OrderId", "o"."CreatedAt", "o"."CustomerId", "o"."Tag"
-      FROM "Orders" AS "o"
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (9ms) [Parameters=[@__get_Item_0='?'], CommandType='Text', CommandTimeout='30']
-      SELECT "e"."CustomerId", "e"."BillingAddress", "e"."Name"
-      FROM "Customers" AS "e"
-      WHERE "e"."CustomerId" = @__get_Item_0
-      LIMIT 1
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (2ms) [Parameters=[@__get_Item_0='?'], CommandType='Text', CommandTimeout='30']
-      SELECT "e"."CustomerId", "e"."BillingAddress", "e"."Name"
-      FROM "Customers" AS "e"
-      WHERE "e"."CustomerId" = @__get_Item_0
-      LIMIT 1
-```
+[Part III - Dependency Injection](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_III_Dependency_Injection)
 
-The logs very well suggest that; first, we are querying for all the orders and then for each order, we are querying for the customer as well. Here, for `2` orders we have `2 + 1 = 3` queries (total 3 hits on the database). Now, do your math and figure out how many times we will hit the database if we have N numbers of orders. Well, we will have a total `N + 1` queries hence, the problem is named `N + 1` problem. 
+[Part IV - GraphiQL - An in-browser IDE](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_IV_GraphIQL)
 
-To overcome this problem, we introduce `DataLoader` in our solution. `DataLoader` adds support for [batching](https://github.com/facebook/dataloader#batching) and [caching](https://github.com/facebook/dataloader#caching) in your `GraphQL` queries. 
+[Part V - Fields, Arguments, Variables](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_V_Fields_Arguments_Variables)
 
-Adding support for `DataLoader` needs some configurations up front. Register the `IDataLoaderContextAccessor` and `DataLoaderDocumentListener` with a singleton lifetime in your `ConfigureServices` method,
+[Part VI - Persist Data - Postgres with EF Core](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_VI_Persist_Data)
 
-*Startup.cs*
+[Part VII - Mutation](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_VII_Mutation)
 
-```
-services.AddSingleton<IDataLoaderContextAccessor, DataLoaderContextAccessor>();
-services.AddSingleton<DataLoaderDocumentListener>();
-```
+[Part VIII - Entity Relations - One to Many](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_VIII_Entity_Relations_One_To_Many)
 
-`IDataLoaderContextAccessor` will be injected later in the constructors of graph types where data loader is needed. But first, in the middleware; we have to add the `DataLoaderDocumentListener` to the list of listeners of `IDocumentExecutor`'s `ExecutionOptions`. 
+[Part IX - Entity Relations - Many to Many](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_IX_Entity_Relationns_Many_To_Many)
 
-*GraphQLMiddleware.cs*
+[Part X - Data Loader](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_X_DataLoader)
 
-```
-public async Task InvokeAsync(HttpContext httpContext, ISchema schema, IServiceProvider serviceProvider)  
-{
-    ....
-    ....
-            var result = await _executor.ExecuteAsync(doc =>
-            {
-                ....
-                ....
+# Video Tutorials
 
-                doc.Listeners.Add(serviceProvider.GetRequiredService<DataLoaderDocumentListener>());
+Coming Soon...
 
-            }).ConfigureAwait(false);
+# Mentions
 
-    ....
-    ....            
-}
-```
-
-Next, add a new method to your datastore which takes a list of customer ids and returns a dictionary of customers with their ids as keys.
-
-*DataStore.cs*
-
-```
-public async Task<Dictionary<int, Customer>> GetCustomersByIdAsync(IEnumerable<int> customerIds, CancellationToken token)
-{
-    return await _applicationDbContext.Customers.Where(i => customerIds.Contains(i.CustomerId)).ToDictionaryAsync(x => x.CustomerId);
-}
-```
-
-You can replace the `Customer` field with the following,
+[Joe McBride](https://twitter.com/UICraftsman) - For providing an awesome community driven project 
+> [graphql-dotnet](https://github.com/graphql-dotnet/graphql-dotnet)
+[Jon Galloway](https://twitter.com/jongalloway) - For featuring posts on ASP.NET Community Standup
 
 
-*OrderType.cs*
-
-```
-Field<CustomerType, Customer>()  
-    .Name("Customer")
-    .ResolveAsync(ctx =>
-    {            
-        var customersLoader = accessor.Context.GetOrAddBatchLoader<int, Customer>("GetCustomersById", dataStore.GetCustomersByIdAsync);
-        return customersLoader.LoadAsync(ctx.Source.CustomerId);  
-    });
-```
-
-> Idea behind `GetOrAddBatchLoader` is that it waits until all the customer ids are queued. Then it fires of the `GetCustomersByIdAsync` method only when all the ids are collected. Once the dictionary of customers is returned with the passed in ids; a customer that belongs to a particular order is returned from the field with some internal object mapping. Remember, this technique of queueing up ids is called batching. We will always have a single request to load related customers for orders no matter what i.e. we will at most have 2 requests.
-
-Running the application and firing the same query as before will provide you the following query logs.
-
-*Logs*
-
-```
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT "o"."OrderId", "o"."CreatedAt", "o"."CustomerId", "o"."Tag"
-      FROM "Orders" AS "o"
-info: Microsoft.EntityFrameworkCore.Database.Command[20101]
-      Executed DbCommand (10ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
-      SELECT "i"."CustomerId", "i"."BillingAddress", "i"."Name"
-      FROM "Customers" AS "i"
-      WHERE "i"."CustomerId" IN (1, 2)
-```
-
-Notice the second query. See how it queries for all the customers with the incoming ids. 
-
-Similarly, for a collection navigation property, you have `GetOrAddCollectionBatchLoader`. Take the `Orders` field of the `CustomerType` for example. You add a new data store method as following,
-
-*DataStore.cs*
-```
-public async Task<ILookup<int, Order>> GetOrdersByCustomerIdAsync(IEnumerable<int> customerIds)  
-{
-    var orders = await _applicationDbContext.Orders.Where(i => customerIds.Contains(i.CustomerId)).ToListAsync();
-            return orders.ToLookup(i => i.CustomerId);
-}
-```
-
-Notice, here we are returning an `ILookup` data structure instead of a dictionary. The only difference between them is `ILookup` can have multiple values against a single key whereas for the dictionary; a single key belongs to a single value.
-
-Modify the `Orders` value inside the `CustomerType` as following,
-
-*CustomerType.cs*
-
-```
-Field<ListGraphType<OrderType>, IEnumerable<Order>>()  
-    .Name("Orders")
-    .ResolveAsync(ctx => 
-    {
-        var ordersLoader = accessor.Context.GetOrAddCollectionBatchLoader<int, Order>("GetOrdersByCustomerId", dataStore.GetOrdersByCustomerIdAsync);
-        return ordersLoader.LoadAsync(ctx.Source.CustomerId);
-    });
-```
-
-`GetOrAddCollectionBatchLoader` and `GetOrAddBatchLoader` both caches the values of the field for the lifetime of a `GraphQl` query. If you only want to use the caching feature and ignore batching, you can simply use the `GetOrAddLoader`. 
-
-Caching is good for fields you request too frequently. So, you can add caching in your `Items` field of the `InventoryQuery` as following,
-
-*InventoryQuery.cs*
-
-```
-Field<ListGraphType<ItemType>, IEnumerable<Item>>()  
-    .Name("Items")
-    .ResolveAsync(ctx =>
-    {
-        var loader = accessor.Context.GetOrAddLoader("GetAllItems", () => dataStore.GetItemsAsync());
-        return loader.LoadAsync();
-    });
-```
-
-#### Repository Link (Branch)
-
-[Part X](https://github.com/fiyazbinhasan/GraphQLCore/tree/Part_X_DataLoader)
-
-#### Important Links
-
-[GraphQl-Dontnet DataLoader](https://graphql-dotnet.github.io/dataloader/)
-
-[Batching GraphQL Queries with DataLoader](http://www.petecorey.com/blog/2017/08/14/batching-graphql-queries-with-dataloader/)
-
-[Facebook DataLoader](https://github.com/facebook/dataloader)
  
