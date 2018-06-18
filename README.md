@@ -54,7 +54,7 @@ services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options =
 
 The `AddEntityFrameworkNpgsql()` entension comes from a seperate package i.e. `Npgsql.EntityFrameworkCore.PostgreSQL`. Install this via `nuget` or `dotnet cli`
 
-> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 2.0.2
+> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 2.1.0
  
 The `Configuration` property is a type of `IConfigurationRoot`. We build a configuration object and assign that to the `Configuration` property in the constructor of `Startup.cs`.
 
