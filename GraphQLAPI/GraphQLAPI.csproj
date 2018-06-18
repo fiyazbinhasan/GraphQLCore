@@ -19,5 +19,8 @@
   <ItemGroup>
     <Compile Remove="Types\OrderItemScalerType.cs" />
     <Compile Remove="Data\Migrations\20180509092547_Initial.cs" />
+    <Compile Remove="Migrations\20180618111722_Initial.Designer.cs" />
+    <Compile Remove="Migrations\20180618111722_Initial.cs" />
+    <Compile Remove="Migrations\ApplicationDbContextModelSnapshot.cs" />
   </ItemGroup>
 </Project>
