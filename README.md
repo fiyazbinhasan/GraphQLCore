@@ -20,7 +20,8 @@ Ask anything you want in the comment section of my blog.
 > dotnet ef database update
 * Build and run the project
 > dotnet build
-> dotnnet run
+
+> dotnet run
 
 # Branches
 
