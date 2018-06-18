@@ -52,6 +52,7 @@ Coming Soon...
 
 [Joe McBride](https://twitter.com/UICraftsman) - For providing an awesome community driven project 
 > [graphql-dotnet](https://github.com/graphql-dotnet/graphql-dotnet)
+
 [Jon Galloway](https://twitter.com/jongalloway) - For featuring posts on ASP.NET Community Standup
 
 
