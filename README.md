@@ -1,6 +1,7 @@
+
 # GraphQL with ASP.NET Core (Part- IV : GraphiQL - An in-browser IDE)
 
-[`GraphiQL`](https://github.com/graphql/graphiql) (spelled `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
+[`GraphiQL`](https://github.com/graphql/graphiql) (pronounced `graphical`) is an in-browser IDE for exploring GraphQL. I think it's a must-have tool for any server running behind GraphQL. With `GraphiQL` in place, you can easily give yourself or your team an in-depth insight of your API.
 
 There are setups you have to do first. We need some packages installed. Create a `package.json` file and paste the following snippet,
 
@@ -79,7 +80,7 @@ html, body {
 }
 ```
 
-GraphiQL is a client-side library which provides a `React` component i.e. `<GraphiQL/>`. It renders the whole graphical user interface of the IDE. The component has a `fetcher` attribute which can be attached to a function. The attached function returns an HTTP promise object and it is just the mimic of the `POST` requests that we have been making with `Insomnia`/`Postman`. All of these are done in the `app.js`.
+GraphiQL is a client-side library which provides a `React` component i.e. `<GraphiQL/>`. It renders the whole graphical user interface of the IDE. The component has a `fetcher` attribute which can be attached to a function. The attached function returns an HTTP promise object which just mimics the `POST` requests that we have been making with `Insomnia`/`Postman`. All of these are done in the `app.js`.
 
 Next up is the `index.html`, which will pop up once our application is served. We render the `<GraphiQL/>` component in a `div` with an id of `app`. The index file is placed under the `wwwroot` so that it is publicly available.
 
@@ -149,9 +150,9 @@ module.exports = [
 ];
 ```
 
-The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_module` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
+The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_modules` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
 
-Last of all a `.babelrc` configuration file is needed to define the presets as followings,
+Last of all a `.babelrc` configuration file is needed to define the presets as follows,
 
 ##### .babelrc
 
@@ -163,7 +164,7 @@ Last of all a `.babelrc` configuration file is needed to define the presets as f
 
 All done! Now run the `webpack` command in the terminal on the root of your project and you will have the `bundle.js` and `style.css` files generated.
 
-On the server-side, in `Startup.cs` files, add the middlewares to serve static files and espacially the default `index.html` file,
+On the server-side, in `Startup.cs` files, add the middleware to serve static files, specifically the default `index.html` file,
 
 The `Configure` method should look like the following,
 
@@ -181,9 +182,9 @@ Now, run the application and you will be presented with the following interface,
 
 <a href="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" imageanchor="1" ><img border="0" src="https://4.bp.blogspot.com/-jyUyY3Ug6rY/WtTnfuaS-jI/AAAAAAAAB2k/QiAhyrDpYFQnKALSGzlLXTuWnvcNNha8ACLcBGAs/s1600/GraphiQL.png" data-original-width="1600" data-original-height="1044" /></a>
 
-On the right-hand side documentation explorer pane, you can browse through different queries and have a deep understanding of what fields are available and what they supposed to do.
+On the right-hand side is the documentation explorer pane, you can browse through different queries and have a deep understanding of what fields are available and what they are supposed to do.
 
-Some of the nice features this IDE has to offers are as followings,
+Some of the nice features this IDE has to offer are as follows,
 
 * Syntax highlighting
 * Intelligent type ahead of fields, arguments, types, and more.
