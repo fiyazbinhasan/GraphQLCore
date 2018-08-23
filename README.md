@@ -108,7 +108,7 @@ Next, add a new method to your datastore which takes a list of customer ids and 
 *DataStore.cs*
 
 ```
-public async Task<Dictionary<int, Customer>> GetCustomersByIdAsync(IEnumerable<int> customerIds, CancellationToken token)
+public async Task<IDictionary<int, Customer>> GetCustomersByIdAsync(IEnumerable<int> customerIds, CancellationToken token)
 {
     return await _applicationDbContext.Customers.Where(i => customerIds.Contains(i.CustomerId)).ToDictionaryAsync(x => x.CustomerId);
 }
