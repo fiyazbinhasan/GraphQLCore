@@ -16,7 +16,7 @@ We are going to build the GraphQL middleware later (Next Post). But first, let's
 
 In the blank app, add the [GraphQL package for dotnet](https://www.nuget.org/packages/GraphQL/2.0.0-alpha-863) and restore the package, 
 
-    dotnet add package GraphQL --version 2.0.0-alpha-923
+    dotnet add package GraphQL --version 2.0.0
 
     dotnet restore
 
@@ -58,7 +58,7 @@ In `Configure` method of `Startup.cs`, delete the existing code and paste the fo
             ";
         }).ConfigureAwait(false);
 
-        var json = new DocumentWriter(indent: true).Write(result)
+        var json = new DocumentWriter(indent: true).Write(result);
         await context.Response.WriteAsync(json);
     });
 
