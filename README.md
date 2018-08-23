@@ -14,7 +14,7 @@ Start by creating a blank ASP.Net Core App.
 
 We are going to build the GraphQL middleware later (Next Post). But first, let's get our basics right. Assuming you already know a bit about GraphQL. So, consider a simple hello world app: we will query for a ***'hello'*** property to the server and it will return a ***'world'*** string. So, the property **hello** will definitely be a string type. 
 
-In the blank app, add the [GraphQL package for dotnet](https://www.nuget.org/packages/GraphQL/2.0.0-alpha-863) and restore the package, 
+In the blank app, add the [GraphQL package for dotnet](https://www.nuget.org/packages/GraphQL/2.0.0) and restore the package, 
 
     dotnet add package GraphQL --version 2.0.0
 
