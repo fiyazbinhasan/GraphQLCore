@@ -23,10 +23,10 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-For the `HelloWordQuery`, we don't have any abstraction. We will just use the raw implementation,
+For the `HelloWorldQuery`, we don't have any abstraction. We will just use the raw implementation,
 
 ```
-services.AddSingleton<HelloWordQuery>();
+services.AddSingleton<HelloWorldQuery>();
 ```
 
 The schema contains the `query` and later in the series it will also have `mutation` and other fields. We better make a separate class for it. The class will extend the `Schema` type and we can make its constructor injectable for the concrete `HelloWorldQuery`,
