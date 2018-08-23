@@ -16,7 +16,7 @@ namespace GraphQLAPI.Types
 				.Name("Item")
 				.ResolveAsync(ctx =>
 			    {
-				    var itemsLoader = accessor.Context.GetOrAddBatchLoader<int, Item>("GetItemsById", fetchFunc: dataStore.GetItemsByIdAsync);
+				    var itemsLoader = accessor.Context.GetOrAddBatchLoader<int, Item>("GetItemsById", dataStore.GetItemsByIdAsync);
 				    return itemsLoader.LoadAsync(ctx.Source.ItemId);  
                 });         
 
@@ -28,7 +28,7 @@ namespace GraphQLAPI.Types
 				.Name("Order")
 				.ResolveAsync(ctx =>
                 {
-				    var ordersLoader = accessor.Context.GetOrAddBatchLoader<int, Order>("GetOrdersById", fetchFunc: dataStore.GetOrdersByIdAsync);
+				    var ordersLoader = accessor.Context.GetOrAddBatchLoader<int, Order>("GetOrdersById", dataStore.GetOrdersByIdAsync);
 				    return ordersLoader.LoadAsync(ctx.Source.OrderId);
                 });
 
