@@ -16,7 +16,7 @@ namespace GraphQLAPI.Types
 				.Name("Customer")
 				.ResolveAsync(ctx =>
 			    {            
-				    var customersLoader = accessor.Context.GetOrAddBatchLoader<int, Customer>("GetCustomersById", dataStore.GetCustomersByIdAsync);
+				    var customersLoader = accessor.Context.GetOrAddBatchLoader<int, Customer>("GetCustomersById", fetchFunc: dataStore.GetCustomersByIdAsync);
 				    return customersLoader.LoadAsync(ctx.Source.CustomerId);  
 			    });
         }
