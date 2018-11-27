@@ -70,8 +70,8 @@ namespace GraphQLAPI
 
             services.AddScoped<IDataStore, DataStore>();
 
-            services.AddEntityFrameworkNpgsql().AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(Configuration["DefaultConnection"]));
-        }
+		    services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("InventoryDB"));
+		}
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -80,7 +80,7 @@ namespace GraphQLAPI
             app.UseStaticFiles();
 
             app.UseMiddleware<GraphQLMiddleware>();
-			new ApplicationDatabaseInitializer().SeedAsync(app).GetAwaiter();
+            new ApplicationDatabaseInitializer().SeedAsync(app).ConfigureAwait(false);
         }
     }
 }

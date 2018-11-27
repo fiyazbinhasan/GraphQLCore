@@ -34,7 +34,7 @@ namespace GraphQLAPI.Store
 
         public async Task<IDictionary<int, Item>> GetItemsByIdAsync(IEnumerable<int> itemIds, CancellationToken token)
         {
-            return await _applicationDbContext.Items.Where(i => itemIds.Contains(i.ItemId)).ToDictionaryAsync(x => x.ItemId);
+            return await _applicationDbContext.Items.Where(i => itemIds.Contains(i.ItemId)).ToDictionaryAsync(x => x.ItemId, cancellationToken: token);
         }      
 
         public async Task<Item> CreateItemAsync(Item item)
@@ -56,7 +56,7 @@ namespace GraphQLAPI.Store
         
 		public async Task<IDictionary<int, Customer>> GetCustomersByIdAsync(IEnumerable<int> customerIds, CancellationToken token)
         {
-            return await _applicationDbContext.Customers.Where(i => customerIds.Contains(i.CustomerId)).ToDictionaryAsync(x => x.CustomerId);
+            return await _applicationDbContext.Customers.Where(i => customerIds.Contains(i.CustomerId)).ToDictionaryAsync(x => x.CustomerId, cancellationToken: token);
         }
 
 		public async Task<Customer> CreateCustomerAsync(Customer customer)
@@ -78,7 +78,7 @@ namespace GraphQLAPI.Store
       
         public async Task<IDictionary<int, Order>> GetOrdersByIdAsync(IEnumerable<int> orderIds, CancellationToken token)
         {
-			return await _applicationDbContext.Orders.Where(i => orderIds.Contains(i.OrderId)).ToDictionaryAsync(x => x.OrderId);
+			return await _applicationDbContext.Orders.Where(i => orderIds.Contains(i.OrderId)).ToDictionaryAsync(x => x.OrderId, cancellationToken: token);
         }
 
         public async Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId)
