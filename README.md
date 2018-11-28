@@ -11,6 +11,11 @@ Ask anything you want in the comment section of my blog.
 * Download the zip or clone the project
 * Make sure you have necessary dotnet core sdks installed (I'm using ASP.NET Core 2.1)
 >  https://www.microsoft.com/net/download/windows
+* Build and run the project
+> dotnet build
+> dotnet run
+
+### Optional ( If you want a real database behind the scene )
 * Make sure you have Postgres installed in your system
 > https://postgresapp.com/
 * Change the connection string in `appsettings.json` to target your local posgres database.
@@ -18,10 +23,7 @@ Ask anything you want in the comment section of my blog.
 > dotnet ef migrations add Initial -o Data/Migrations
 * Apply migration in your database
 > dotnet ef database update
-* Build and run the project
-> dotnet build
 
-> dotnet run
 
 # Branches
 
