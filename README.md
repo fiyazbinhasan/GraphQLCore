@@ -198,7 +198,7 @@ Field<ListGraphType<ItemType>, IEnumerable<Item>>()
 
 #### Important Links
 
-[GraphQl-Dontnet DataLoader](https://graphql-dotnet.github.io/dataloader/)
+[GraphQl-Dontnet DataLoader](https://graphql-dotnet.github.io/docs/guides/dataloader/)
 
 [Batching GraphQL Queries with DataLoader](http://www.petecorey.com/blog/2017/08/14/batching-graphql-queries-with-dataloader/)
 
