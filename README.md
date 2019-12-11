@@ -150,7 +150,7 @@ module.exports = [
 ];
 ```
 
-The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClintApp` folder, the dependencies from the `node_modules` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
+The configuration is pretty much self-explanatory. It takes all the `.js` files in the `ClientApp` folder, the dependencies from the `node_modules` and compiles them into a single `bundle.js` file. Similarly, the user-defined and library style files are compiled into a single `style.css` file. Both of the compiled files are sent to the `wwwroot` to make them publicly available.
 
 Last of all a `.babelrc` configuration file is needed to define the presets as follows,
 
